@@ -1,0 +1,86 @@
+
+There are two different codes included here.
+See the "README" file for a description.
+
+--------------------------------------------------------
+--------------------------------------------------------
+pixsrc install instructions.
+--------------------------------------------------------
+--------------------------------------------------------
+
+The "compile-pixsrc.sc" file attempts to compile pixsrc
+with the least amount of problems, but it may require
+some tweaking, depending on your system.
+
+pixsrc depends on several external libraries
+- GNU Scientific library (GSL)
+- CFITSIO (FITS file I/O)
+- SuiteSparse/UMFPACK (Sparse linear algebra)
+- a BLAS implementation (Optimized linear algebra)
+- WCSTools (WCS Coordinate system; source code included)
+- CUDA (GPU-enabled code; optional)
+
+These must be installed, and the environment (e.g. the
+LD_LIBRARY_PATH variable) must be setup appropriately,
+so that g++ can find the appropriate libraries and
+header files.
+Alternatively, you can modify the pixsrc makefile found
+in "src/pixsrc/pixsrc/makefile".
+This makefile already includes some probable flags:
+-L/usr/lib*/atlas (if selected)
+-I/usr/include/cfitsio
+-I/usr/include/suitesparse
+appropriate CUDA paths if found
+
+There are several environmental variables at the top of
+the "compile-pixsrc.sc" file that control the
+compile-time options, discussed below.
+
+pixsrc can be compiled for use with either the lens
+modeling code distributed here or for use with Chuck
+Keeton's gravlens/lensmodel package.
+The USE_PIXSRC_TRIAXIAL or USE_PIXSRC_GRAVLENS
+variables control this behavior.
+
+USE_PIXSRC_BLAS_* controls with which BLAS
+implementation pixsrc is linked.
+Options include OpenBLAS or ATLAS. Choosing OpenBLAS
+could be simpler, since older ATLAS installs (before
+the single libtatlas.so library was introduced) will
+require customizing the pixsrc makefile.
+
+USE_PIXSRC_SIT_* controls how the integer type is
+defined in pixsrc.
+Choosing a 64-bt integer can be required for modelling
+large visibility sets in the uv-plane and can be faster
+on 64-bit systems.
+"long int" will work with SuiteSparse/UMFPACK libraries
+distributed with Linux installations, but "long int" is
+not guaranteed to be 64-bit.
+If "long long int" is required, then SuiteSparse will
+need to be compiled from source with some special
+compile-time flags to redfine the SuiteSparse_long
+variable.
+
+
+--------------------------------------------------------
+--------------------------------------------------------
+Lens code install instructions.
+--------------------------------------------------------
+--------------------------------------------------------
+
+The "compile-lenscode.sh" file attempts to compile the
+lens modeling code.
+It creates two distinct libraries.
+
+The only required library is the GNU Scientific Library
+(GSL).
+pixsrc is only required if extended source emission
+(as opposed to point-like images) is being modeled.
+If not needed, a dummy pixsrc library will need to be
+created.
+
+As described in the pixsrc install instruction, g++ will
+need to be able to find GSL libraries and header files.
+This should happen automatically on most systems.
+

@@ -204,7 +204,11 @@ ifeq ($(USE_PIXSRC_BLAS_OPENBLAS),YES)
 PIXSRC_OBJ_SHARED_SH +=	-lopenblas
 endif
 ifeq ($(USE_PIXSRC_BLAS_ATLAS),YES)
+ifeq ($(PIXSRC_SIZE),32)
+PIXSRC_OBJ_SHARED_SH +=	-L/usr/lib/atlas -ltatlas
+else
 PIXSRC_OBJ_SHARED_SH +=	-L/usr/lib64/atlas -ltatlas
+endif
 endif
 
 all:			$(PIXSRC_LIB_SHARED)
