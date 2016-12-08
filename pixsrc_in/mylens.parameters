@@ -1,0 +1,12 @@
+coorsys:       J2000 161.25 58 0 0
+psf:           2 0.471 0.471 0 101
+noise:         0.2
+shapelets:     1 15 15
+shapepixsplit: 1 1
+regorder:      2
+threads:       12
+images:        0
+noisemap:      0
+verbosity:     1
+
+penalty4:      2 0 0 0 1 1e-5
