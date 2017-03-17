@@ -12,8 +12,10 @@
 #include <gsl/gsl_sf_gamma.h>
 #include <gsl/gsl_integration.h>
 #include <iomanip>
+//#include <mathlink.h>
 #include <cstring>
 #include <cfloat>
+//#include <gmp.h>
 #include <stdexcept>
 #include <sstream>
 #include <fstream>
@@ -31,6 +33,7 @@
 
 // some constants
 const double pi   = 3.14159265358979323846264338327950; // known and loved
+const double arc2rad = pi/(180.0*3600.0);
 const double pinf =  DBL_MAX;
 const double ninf = -DBL_MAX;
 const int min_inf_sum_iter = 5;   // minimum number of terms in infinite sum
@@ -47,6 +50,7 @@ static size_t ps_numimages=0;
 static double *ps_tlmparms_pointer;
 static time_t *ps_tlmtime_pointer;
 static double *ps_tlmenvirogals_pointer;
+static pthread_mutex_t mymutex;
 static int numthreads;
 static int thread_in_use[100];
 
@@ -183,14 +187,20 @@ struct minchist
 extern "C" 
 void potdefmag    ( double x, double y,  double *ig1,
 		    double *defx, double *defy, double *ig2,
-		    double *ig3, double *ig4, double *ig5, double **parms__, time_t **tlmtime__, double **envirogals_)
+		    double *ig3, double *ig4, double *ig5, double **parms__, time_t **tlmtime__, double **envirogals_, int imagenumber)
 {
+//    std::cout << "myparms " << parms__ << std::endl;
+//    usleep(10000000000000);
     double *parms = *parms__;
     double *envirogals = *envirogals_;
     time_t starttime = **tlmtime__;
   // check for timeout
+//    std::cout << "pdm " << x << " " << y << " " << envirogals_ << std::endl;
+//    std::cout << "pdm " << x << " " << y << " " << envirogals << std::endl;
+//    std::cout << "pdm " << x << " " << y << " " << envirogals[0] << std::endl;
   if (time(NULL)-starttime>cutoffminutes*60)
   {
+//      std::cout << time(NULL) << " " << starttime << std::endl;
       *defx = 0*rand()/(double)RAND_MAX-0.5;
       *defy = 0*rand()/(double)RAND_MAX-0.5;
       return;
@@ -211,7 +221,7 @@ void potdefmag    ( double x, double y,  double *ig1,
   pind +=6;
   
   // get deflections and rescale
-  stple_lenscalc (newparms,envirogals,starttime,defx,defy);
+  stple_lenscalc (newparms,envirogals,starttime,defx,defy, imagenumber);
   *defx *= -parms[16];
   *defy *= parms[16];
 }
@@ -275,6 +285,14 @@ void stple_imageplane_chi2 (void* params, void *envirogals_)
 
     int numimg = (int)(*numimg_d);
     
+    int numeg = (int)envirogals[0];
+    int lens2startind = 2+3*numeg;
+    int havelens2 = (int)envirogals[lens2startind];
+    double *l2parms = envirogals + lens2startind+1;
+    double origl2p = l2parms[-1];
+    l2parms[-1] = 0;
+    
+
     // setup array to pass to lensing calculations 
     // structure of parms4calc array:
     //    rotmat, aratio, s, sigmacr, MRe, rscale, rcore, cutrad, numimg, coor, resultsarr(3+3*numimg elements),
@@ -297,7 +315,7 @@ void stple_imageplane_chi2 (void* params, void *envirogals_)
     resultarr[3] = 1.e100;
 
     // do one run to get initial guesses
-    stple_lenscalc (parms4calc, envirogals, starttime, 0,0);
+    stple_lenscalc (parms4calc, envirogals, starttime, 0,0, -1);
 
     // store ellipticity and mass normalization
     std::copy (parms4calcresult, parms4calcresult+3, resultarr);
@@ -368,15 +386,21 @@ void stple_imageplane_chi2 (void* params, void *envirogals_)
     while (mdm.status==GSL_CONTINUE && mdm.iter<(unsigned int)maxiter);
     resultarr[3] = gsl_multimin_fminimizer_minimum (mdm.s);
     gsl_vector *best = gsl_multimin_fminimizer_x (mdm.s);
+    
+    double srcposfound[2] = {gsl_vector_get(mdm.s->x,0),gsl_vector_get(mdm.s->x,1)};
 
     gsl_multimin_fminimizer_free (mdm.s);
     gsl_vector_free (x);
     gsl_vector_free (ss);
     
+    l2parms[-1] = origl2p;
     
     // get chi^2 from extended source reconstruction
     if (ps_data && ps_cdata && ps_numimages)
     {
+	l2parms[1] = srcposfound[0];
+	l2parms[2] = srcposfound[1];
+
 	// copy lens model parameters
 	ps_tlmparms_pointer = parms;
 	ps_tlmenvirogals_pointer = envirogals;
@@ -395,7 +419,7 @@ struct st4dtf
 };
 
 // lensing calculations function
-void stple_lenscalc (void *params, double *envirogals, time_t starttime, double *defx, double *defy)
+void stple_lenscalc (void *params, double *envirogals, time_t starttime, double *defx, double *defy, int imagenumber)
 {
     double *parms = (double*)params;
 
@@ -635,30 +659,51 @@ void stple_lenscalc (void *params, double *envirogals, time_t starttime, double 
     }
     
     // add deflections and delays from galaxies nearby (SIS)
-    if (envirogals[0]>0)
+    int numeg = (int)envirogals[0];
+    int lens2startind = 2+3*numeg;
+    int havelens2 = (int)envirogals[lens2startind];
+    if (numeg>0)
     {
-	int numeg = (int)envirogals[0];
 	double maxrE = envirogals[1];
 	double newx0,newy0,newr0,newx,newy,newr,newc,news,egdefx=0,egdefy=0;
 	for (int g=0; g<numeg; ++g)
 	{
-	    newx0  = coor[0]-envirogals[2+g*3+0];
-	    newy0  = coor[1]-envirogals[2+g*3+1];
+	    newx0  = coor[0]-envirogals[2+g*3+0]/ *rscale_arc;
+	    newy0  = coor[1]-envirogals[2+g*3+1]/ *rscale_arc;
 	    newr0  = std::sqrt(newx0*newx0+newy0*newy0);
-	    newr0 /= *rscale_arc;
 	    for (int j=0; j<numimg; ++j)
 	    {
-		newx  = coor[j*2+0]-envirogals[2+g*3+0];
-		newy  = coor[j*2+1]-envirogals[2+g*3+1];
+		newx  = coor[j*2+0]-envirogals[2+g*3+0]/ *rscale_arc;
+		newy  = coor[j*2+1]-envirogals[2+g*3+1]/ *rscale_arc;
 		newr  = std::sqrt(newx*newx+newy*newy);
 		newc  = newx/newr;
 		news  = newy/newr;
-		newr /= *rscale_arc;
 		deflection[j*2+0] += newc *envirogals[2+g*3+2]*maxrE/ *rscale_arc;
 		deflection[j*2+1] += news *envirogals[2+g*3+2]*maxrE/ *rscale_arc;
-		tdel[j]           -= newr0*envirogals[2+g*3+2]*maxrE/(*rscale_arc**rscale_arc);
-		tdel[j]           += newr *envirogals[2+g*3+2]*maxrE/(*rscale_arc**rscale_arc);
+		tdel[j]           -= newr0*envirogals[2+g*3+2]*maxrE/ *rscale_arc;
+		tdel[j]           += newr *envirogals[2+g*3+2]*maxrE/ *rscale_arc;
 	    }
+	}
+    }
+
+    if (havelens2 && 1==imagenumber)
+    {
+	double newx0,newy0,newr0,newx,newy,newr,newc,news;
+	double *l2parms = envirogals + lens2startind+1;
+	newx0  = coor[0]-l2parms[1];
+	newy0  = coor[1]-l2parms[2];
+	newr0  = std::sqrt(newx0*newx0+newy0*newy0);
+	for (int j=0; j<numimg; ++j)
+	{
+	    newx  = coor[j*2+0]-0*l2parms[1];
+	    newy  = coor[j*2+1]-0*l2parms[2];
+	    newr  = std::sqrt(newx*newx+newy*newy);
+	    newc  = newx/newr;
+	    news  = newy/newr;
+	    deflection[j*2+0] += newc *l2parms[0]/ *rscale_arc;
+	    deflection[j*2+1] += news *l2parms[0]/ *rscale_arc;
+	    deflection[j*2+0] *= l2parms[3];
+	    deflection[j*2+1] *= l2parms[3];
 	}
     }
 
@@ -766,7 +811,7 @@ double get_image_plane_chi2 (const gsl_vector *v, void* params__)
 	return chival2+chival3;
 
     // get deflections and potential
-    stple_lenscalc (params, envirogals, starttime, 0,0);
+    stple_lenscalc (params, envirogals, starttime, 0,0, -1);
     
     // get model predictions and chi2
     for (int j=0; j<numimg; ++j)
@@ -800,15 +845,18 @@ void setup (char *basename, int numthreads_)
     std::fill (errprint,errprint+en_num_msg,0);
 
     // setup pixsrc
-    if (basename && basename[0])
+    if (basename)
     {
 	numthreads = numthreads_;
+//	std::cout << "mutex init " << &mymutex << " " << (int)pthread_mutex_init(&mymutex,NULL) << std::endl;
 	std::fill (thread_in_use,thread_in_use+100,0);
 	size_t memorysizedata,memorysizecdata;
 	ps_getpixsrcinfo(basename, &memorysizedata, &memorysizecdata, &ps_numimages);
 	ps_data  = (void*)malloc(memorysizedata );
 	ps_cdata = (void*)malloc(memorysizecdata);
 	ps_loaddata(basename, ps_numimages, ps_data, ps_cdata, &ps_tlmparms_pointer, &ps_tlmtime_pointer, &ps_tlmenvirogals_pointer);
+//	std::cout << &ps_tlmenvirogals_pointer << std::endl;
+//	std::cout << ps_tlmenvirogals_pointer << std::endl;
     }
 }
 
@@ -1665,6 +1713,12 @@ void infinite_sum_func (int minloops, int maxloops, int numsums, double ftol,
 	  std::fill (sums,sums+numsums,0);
 	break;
 	}
+      /*{
+	  std::cout << "KILLING BC OF TIMEOUT" << std::endl;
+	  std::cerr << "KILLING BC OF TIMEOUT" << std::endl;
+	    exit(1);
+	}
+      */
 	
 	std::copy (prevsums2,prevsums2+numsums,prevsums3);
 	std::copy (prevsums,prevsums+numsums,prevsums2);

@@ -34,7 +34,7 @@ double associatedlegendre_func (double,int,double,double);
 int    sgn(double);
 int    sgn_pos_neg(double);
 int    sgnpow(double,int);
-void   stple_lenscalc (void*, double*, time_t, double*, double*);
+void   stple_lenscalc (void*, double*, time_t, double*, double*, int);
 double get_image_plane_chi2 (const gsl_vector*,void*);
 double safe_mul_div(double,double,double, int,int,int);
 double safe_mul_div(double,double,double,double, int,int,int,int);
