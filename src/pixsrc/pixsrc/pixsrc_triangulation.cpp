@@ -214,7 +214,7 @@ void pixsrc_triangulation::pstriangulatebody( inputdata *data_, commoninputdata 
                         COMMON raytrace (data_, cdata_, xx, yy,
                                          &vars_->newloc_sslo[r][(x*data_->subsampling+y)*2],
                                          &vars_->newloc_sslo[r][(x*data_->subsampling+y)*2+1],
-                                         &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                         &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                     }
                 }
             }

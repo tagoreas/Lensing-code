@@ -5,8 +5,8 @@ BASEDIR=`pwd`
 # external libraries
 libs='-lgsl -L'$BASEDIR'/lib -lpixsrc'
 
-# number of threads to be used during lens modelling (parallel MCMC sampling)
-numlibs=12
+# attempt to get number of threads to be used during lens modelling (parallel MCMC sampling)
+numlibs=$(cat /proc/cpuinfo | grep -i processor | awk '{print $NF+1}' | tail -n1)
 
 # cleanup
 mkdir -p lib
@@ -27,6 +27,6 @@ cd ../../
 let numlibs=numlibs-1
 cd lib
 for i in $(seq 0 $numlibs); do 
-    cp libstple_lenscalc.so libstple_lenscalc.$i.so
+    ln -s libstple_lenscalc.so libstple_lenscalc.$i.so
 done
 cd ..

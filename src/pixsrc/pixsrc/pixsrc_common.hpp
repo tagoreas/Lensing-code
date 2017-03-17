@@ -62,7 +62,7 @@ public:
                                           PS_SIT, PS_SIT, double, string                     );
     static void  raytrace               ( inputdata*, commoninputdata*,
                                           double , double , double*, double*,
-                                          double*, double*, double*, double*, double*, PS_SIT);
+                                          double*, double*, double*, double*, double*, PS_SIT, PS_SIT);
     static void  raytrace_s2i           ( inputdata*, commoninputdata*,
                                           double , double , PS_SIT*, double***            );
 

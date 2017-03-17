@@ -14,29 +14,31 @@ usepixsrc = 1 # flag to either model(1) or not model(0) extended source (require
 startrow  = 1 # row in 'lenses.dat' file to start modelling at
 skiprow   = 1 # model every <skiprow> lenses in 'lenses.dat' file, starting at row <startrow>
 symmetry  = 2 # use spherical(0), axisymmetric(1), or triaxial(2) lens models
+enviromod = 1 # model lens environment(1) or don't(0)
+twoplane  = 1 # two-plane lensing on(1) or off(0)
 
 
 
 # initial parameter values, bounds, penalty strengths
 # range of parameters for creating initial grid of models
 # startp0 is really the minimum value (for creating initial MCMC simplex)
-#                     0     1       2     3          4               5            6       7     8       9    10     11  12   13
-#                    M_Re slope     q     p        xyang            zang          PA      H0   Reff     R1   R2     RA  Dec  EGAL
-startp0 = np.array( [  10.0 , 1.7 , 0.5 , 0.5 ,  0.            ,  0.            , 0.    , 0.47 , 0.  , -2. , 1.25, -10, -10, 0   ] )
-rangep0 = np.array( [  2.   , 0.6 , 0.5 , 0.5 , 90.*np.pi/180. , 90.*np.pi/180. , 0.    , 0.4  , 0.  ,  1. , 0.75,  20,  20, 500 ] )
+#                      0      1     2     3      4               5                6       7      8      9    10     11   12  13    14
+#                      M_Re   slope q     p      xyang           zang             PA      H0     Reff   R1   R2     RA   Dec EGAL  L2
+startp0 = np.array( [  10.0 , 1.7 , 0.5 , 0.5 ,  0.            ,  0.            , 0.    , 0.47 , 0.  , -2. , 1.25, -10, -10, 0   , 0   ] )
+rangep0 = np.array( [  2.   , 0.6 , 0.5 , 0.5 , 90.*np.pi/180. , 90.*np.pi/180. , 0.    , 0.4  , 0.  ,  1. , 0.75,  20,  20, 500 , 500 ] )
 
 # hard bounds
 bounds = np.array( [ [7,15],[1.5,2.5],[0,1],[0,1], \
                          [0,0.5*np.pi],[0,0.5*np.pi],[-20*np.pi/180.,np.pi+20*np.pi/180.], \
-                         [0.1,1.5],[0.05,11],[-2,0],[1,2],[-500,500],[-500,500],[0,10000] ] )
+                         [0.1,1.5],[0.05,11],[-2,0],[1,2],[-500,500],[-500,500],[0,10000],[0,5000] ] )
 # let parameters live outside hard bounds (but only within a certain distance and with a penalty function added).
 # parameters are penalized and then reset to bound limits
 delbnd = np.array( [ [-0.2,0.2],[-0.2,0.2],[-0.2,0.2],[-0.2,0.2], \
                          [-10.*np.pi/180.,10.*np.pi/180.],[-10.*np.pi/180.,10.*np.pi/180.],[-10.*np.pi/180.,10.*np.pi/180.], \
-                         [-0.2,0.2],[-1,1],[-1,1],[-1,1],[-50,50],[-50,50],[-50,50] ] )
+                         [-0.2,0.2],[-1,1],[-1,1],[-1,1],[-50,50],[-50,50],[-50,50],[-50,50] ] )
 sigbnd = np.array( [ [.02,.02],[.02,.02],[.02,.02],[.02,.02], \
                          [2.*np.pi/180.,2.*np.pi/180.],[2.*np.pi/180.,2.*np.pi/180.],[2.*np.pi/180.,2.*np.pi/180.], \
-                         [.02,.02],[.02,.02],[.02,.02],[.02,.02],[10,10],[10,10],[5,5] ] )
+                         [.02,.02],[.02,.02],[.02,.02],[.02,.02],[10,10],[10,10],[5,5],[5,5] ] )
 
 
 # number of MCMC walkers and steps (per walker)
@@ -75,6 +77,9 @@ if 1==symmetry:
     rangep0 = np.delete (rangep0,[3])
     startp0 = np.delete (startp0,[3])   
 ndim = len(rangep0)
+
+if 0==enviromod: rangep0[13] = 0
+if 0==twoplane:  rangep0[14] = 0
 
 # global constants and parameters
 G          = 4.3022682e-6   # (km/s)^2  kpc/solar masses
@@ -149,6 +154,7 @@ def mcmcfunc (xs00,zlens,zsrc,e1,e2,e12cov,avd,avderr,pos,poserr,tdel,tdelerr,hm
     xs[11]*=0.001
     xs[12]*=0.001
     xs[13]*=0.001
+    xs[14]*=0.001
 
 
     # get cosmology-dependent parameters and other stuff
@@ -184,10 +190,10 @@ def mcmcfunc (xs00,zlens,zsrc,e1,e2,e12cov,avd,avderr,pos,poserr,tdel,tdelerr,hm
     val += val45
 
     # constrain environment parameter if there is no environment
-    if 0==len(egarr):
-        mideg = 0.5*(bounds[13][1]+bounds[13][0])*0.001
-        sigeg = (bounds[13][1]-bounds[13][0])/20.0
-        val45 += (xs[13]-mideg)**2/(sigeg)**2
+    #if 0==len(egarr):
+    #    mideg = 0.5*(bounds[13][1]+bounds[13][0])*0.001
+    #    sigeg = (bounds[13][1]-bounds[13][0])/20.0
+    #    val45 += (xs[13]-mideg)**2/(sigeg)**2
 
     # convert Nbody units to physical units and get chi2
     # massRe_nbody<=1 is mass inside Re in units of total mass, which is unity
@@ -309,6 +315,8 @@ for obj0 in lenses:
     # get grid initial startup models for MCMC
     rangep = np.copy(rangep0)
     startp = np.copy(startp0)
+    if (0==len(egarr)):
+        rangep[13] = 0
     rsinds = [6,8]
     if 0==symmetry:
         rsinds = [3]

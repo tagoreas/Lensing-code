@@ -246,7 +246,7 @@ void pixsrc_common::startlensing(inputdata *data_, commoninputdata *cdata_, lens
                 COMMON raytrace (data_, cdata_,
                                  data_->oldloc[r*2], data_->oldloc[r*2+1],
                                  &(vars_->newloc[r*2]), &(vars_->newloc[r*2+1]),
-                                 &magxx, &magxy, &magyx, &magyy, &pot, r);
+                                 &magxx, &magxy, &magyx, &magyy, &pot, r, vars_->imagenumber);
 
                 if (data_->gridtype==2 || data_->use_shapelets)
                     vars_->magnification[r]=std::fabs(1/((1-magxx)*(1-magyy)-magxy*magyx));
@@ -261,7 +261,7 @@ void pixsrc_common::startlensing(inputdata *data_, commoninputdata *cdata_, lens
                                      data_->mmborder[src][img][vert*2+1+1],
                                      &(data_->mmborder_defl[src][img][vert*2+0+1]),
                                      &(data_->mmborder_defl[src][img][vert*2+1+1]),
-                                     &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                     &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
         pthread_mutex_unlock( cdata_->potdefmagmutex );
         pthread_mutex_unlock( cdata_->wcsmutex       );
     }
@@ -300,7 +300,7 @@ void pixsrc_common::startlensing(inputdata *data_, commoninputdata *cdata_, lens
                 COMMON raytrace (data_, cdata_,
                                  data_->oldloc[r*2], data_->oldloc[r*2+1],
                                  &(vars_->newloc[r*2]), &(vars_->newloc[r*2+1]),
-                                 &magxx, &magxy, &magyx, &magyy, &pot, r);
+                                 &magxx, &magxy, &magyx, &magyy, &pot, r, vars_->imagenumber);
 
                 if(data_->gridtype==2 || data_->use_shapelets)
                     vars_->magnification[r]=std::fabs(1/((1-magxx)*(1-magyy)-magxy*magyx));
@@ -325,7 +325,7 @@ void pixsrc_common::startlensing(inputdata *data_, commoninputdata *cdata_, lens
                 COMMON raytrace (data_, cdata_,
                                  data_->oldloc[r*2], data_->oldloc[r*2+1],
                                  &(vars_->newloc[r*2]), &(vars_->newloc[r*2+1]),
-                                 &magxx, &magxy, &magyx, &magyy, &pot, r);
+                                 &magxx, &magxy, &magyx, &magyy, &pot, r, vars_->imagenumber);
 
                 if(data_->gridtype==2 || data_->use_shapelets)
                     vars_->magnification[r]=std::fabs(1/((1-magxx)*(1-magyy)-magxy*magyx));
@@ -388,7 +388,7 @@ void pixsrc_common::startlensing(inputdata *data_, commoninputdata *cdata_, lens
 void pixsrc_common::raytrace (inputdata *data_, commoninputdata *cdata_,
                               double x, double y, double *xx, double *yy,
                               double *magxx, double *magxy,
-                              double *magyx, double *magyy, double *pot, PS_SIT r)
+                              double *magyx, double *magyy, double *pot, PS_SIT r, PS_SIT imagenumber)
 {
     // **************************
     // ******** WARNING *********
@@ -432,7 +432,7 @@ void pixsrc_common::raytrace (inputdata *data_, commoninputdata *cdata_,
 #endif
 #ifdef PS_HAVE_TRIAXIAL
     EXTERNAL ps_potdefmag (pos[0], pos[1], pot, &defx, &defy,
-                           magxx, magyy, magxy, magyx, cdata_->tlmparms, cdata_->tlmtime, cdata_->tlmenvirogals);
+                           magxx, magyy, magxy, magyx, cdata_->tlmparms, cdata_->tlmtime, cdata_->tlmenvirogals, imagenumber);
 #endif
 
     if( !strcmp( cdata_->coordsysorig, "PIXEL" ) )
@@ -557,7 +557,7 @@ void pixsrc_common::subsample_ie( void *args )
                         COMMON raytrace (data_, cdata_, xxx, yyy,
                                          &(vars_->newloc_ssas[r][ss*2  ]),
                                          &(vars_->newloc_ssas[r][ss*2+1]),
-                                         &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                         &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                     }
                 }
             }
@@ -623,7 +623,7 @@ void pixsrc_common::resubsample_ie( void *args )
                         COMMON raytrace (data_, cdata_, xxx, yyy,
                                          &(vars_->newloc_ssas[r][ss*2  ]),
                                          &(vars_->newloc_ssas[r][ss*2+1]),
-                                         &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                         &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                     }
                 }
             }
@@ -2934,7 +2934,7 @@ void pixsrc_common::resubsample(inputdata *data_, commoninputdata *cdata_, lensv
                         EXTERNAL ps_potdefmag(pos2[0], pos2[1], &ig, &defx, &defy, &magxx, &magyy, &magxy, &magyx);
 #endif
 #ifdef PS_HAVE_TRIAXIAL
-                        EXTERNAL ps_potdefmag(pos2[0], pos2[1], &ig, &defx, &defy, &magxx, &magyy, &magxy, &magyx, cdata_->tlmparms, cdata_->tlmtime, cdata_->tlmenvirogals);
+                        EXTERNAL ps_potdefmag(pos2[0], pos2[1], &ig, &defx, &defy, &magxx, &magyy, &magxy, &magyx, cdata_->tlmparms, cdata_->tlmtime, cdata_->tlmenvirogals, vars_->imagenumber);
 #endif
 
                         if(!strcmp(cdata_->coordsysorig,"PIXEL"))

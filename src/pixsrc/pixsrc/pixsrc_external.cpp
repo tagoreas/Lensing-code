@@ -81,7 +81,7 @@ extern "C" void              find_img     ( double u, double v,  int *numimg, do
 // these use triaxial halo models (when not linking with gravlens/lensmodel)
 extern "C" void              potdefmag    ( double x, double y,  double *ig1,
                                             double *defx, double *defy, double *ig2,
-                                            double *ig3, double *ig4, double *ig5, double **parms, time_t **tlmtime, double **envirogals);
+                                            double *ig3, double *ig4, double *ig5, double **parms, time_t **tlmtime, double **envirogals, PS_SIT imagenumber);
 extern "C" void              find_img     ( double u, double v,  int *numimg, double ***imgs);
 #endif
 
@@ -271,9 +271,9 @@ void pixsrc_external::ps_potdefmag( double x, double y,  double *ig1,
 #ifdef PS_HAVE_TRIAXIAL
 void pixsrc_external::ps_potdefmag( double x, double y,  double *ig1,
                                     double *defx, double *defy, double *ig2,
-                                    double *ig3, double *ig4, double *ig5, double **parms, time_t **tlmtime, double **envirogals)
+                                    double *ig3, double *ig4, double *ig5, double **parms, time_t **tlmtime, double **envirogals, PS_SIT imagenum)
 {
-    potdefmag( x, y, ig1, defx, defy, ig2, ig3, ig4, ig5, parms, tlmtime, envirogals);
+    potdefmag( x, y, ig1, defx, defy, ig2, ig3, ig4, ig5, parms, tlmtime, envirogals, imagenum);
 }
 #endif
 

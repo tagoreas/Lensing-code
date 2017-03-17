@@ -224,7 +224,7 @@ void* pixsrc_shapelets_operations::lo_set_hermite_thread (void *args)
                             COMMON raytrace (data_, cdata_,
                                              thisx, thisy,
                                              &newpos[xs][ys*2], &newpos[xs][ys*2+1],
-                                             &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                             &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                         }
                     }
                 }
@@ -238,7 +238,7 @@ void* pixsrc_shapelets_operations::lo_set_hermite_thread (void *args)
                     COMMON raytrace (data_, cdata_,
                                      startpos[0]+xs*mag_step_size, startpos[1]+ys*mag_step_size,
                                      &newpos[xs][ys*2], &newpos[xs][ys*2+1],
-                                     &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                     &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
         }
         pthread_mutex_unlock (cdata_->potdefmagmutex);
         pthread_mutex_unlock (cdata_->wcsmutex);
@@ -283,7 +283,7 @@ void* pixsrc_shapelets_operations::lo_set_hermite_thread (void *args)
                                     COMMON raytrace (data_, cdata_,
                                                      thisx, thisy,
                                                      &newpos[xind2][yss*2], &newpos[xind2][yss*2+1],
-                                                     &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                                     &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                                 }
                             }
                         }
@@ -297,7 +297,7 @@ void* pixsrc_shapelets_operations::lo_set_hermite_thread (void *args)
                             COMMON raytrace (data_, cdata_,
                                              startpos[0]+xss*mag_step_size, startpos[1]+yss*mag_step_size,
                                              &newpos[xind2][yss*2], &newpos[xind2][yss*2+1],
-                                             &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                             &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                 }
                 pthread_mutex_unlock (cdata_->potdefmagmutex);
                 pthread_mutex_unlock (cdata_->wcsmutex);
@@ -1249,7 +1249,7 @@ double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, common
                         COMMON raytrace (data_, cdata_,
                                          thisx, thisy,
                                          &newpos[xs][ys*2], &newpos[xs][ys*2+1],
-                                         &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                         &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                     }
                 }
             }
@@ -1263,7 +1263,7 @@ double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, common
                 COMMON raytrace (data_, cdata_,
                                  startpos[0]+xs*mag_step_size, startpos[1]+ys*mag_step_size,
                                  &newpos[xs][ys*2], &newpos[xs][ys*2+1],
-                                 &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                 &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
     }
     pthread_mutex_unlock (cdata_->potdefmagmutex);
     pthread_mutex_unlock (cdata_->wcsmutex);
@@ -1308,7 +1308,7 @@ double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, common
                                 COMMON raytrace (data_, cdata_,
                                                  thisx, thisy,
                                                  &newpos[xind2][yss*2], &newpos[xind2][yss*2+1],
-                                                 &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                                 &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
                             }
                         }
                     }
@@ -1322,7 +1322,7 @@ double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, common
                         COMMON raytrace (data_, cdata_,
                                          startpos[0]+xss*mag_step_size, startpos[1]+yss*mag_step_size,
                                          &newpos[xind2][yss*2], &newpos[xind2][yss*2+1],
-                                         &magxx, &magxy, &magyx, &magyy, &pot, -1);
+                                         &magxx, &magxy, &magyx, &magyy, &pot, -1, vars_->imagenumber);
             }
             pthread_mutex_unlock (cdata_->potdefmagmutex);
             pthread_mutex_unlock (cdata_->wcsmutex);

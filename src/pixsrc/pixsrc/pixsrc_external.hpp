@@ -89,7 +89,7 @@ public:
 #ifdef PS_HAVE_TRIAXIAL
     // these use triaxial halo models (when not linking with gravlens/lensmodel)
     static void              ps_potdefmag    ( double, double,  double*, double*,
-                                               double*, double*, double*, double*, double*, double**, time_t**, double**);
+                                               double*, double*, double*, double*, double*, double**, time_t**, double**, PS_SIT);
     static void              ps_find_img     (double u, double v, PS_SIT *numimg, double ***imgs);
 #endif
 

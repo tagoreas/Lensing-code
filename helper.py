@@ -161,7 +161,7 @@ def get_lens_calcs (vdparms, sigmacrkpc, G, M, R, kpc2arc, pos, tdel, poserr, td
     sendarr    = np.concatenate((argarr,posarr,tdelarr,poserrarr,tdelerrarr,emptyarr)).astype('float64')
     numpad     = len(posarr)+len(poserrarr)+len(tdelarr)+len(tdelerrarr)+len(argarr)
 
-    egarr  = np.array(np.concatenate(([len(egals)/3,vdparms[13]],egals))).astype('float64')
+    egarr  = np.array(np.concatenate(([len(egals)/3,vdparms[13]],egals,np.array([1,vdparms[14],0,0,1.086747931502459])))).astype('float64')
     
     myind = stple_f4[0]()
     stple_f1[myind](sendarr,egarr)
