@@ -8,9 +8,9 @@ fi
 
 find . -name *~ -exec rm {} \;
 
-#git init
+git init
 git add -A
 git commit -m "$1"
-#git remote add origin https://github.com/tagoreas/Lensing-code.git
+git remote add origin https://github.com/tagoreas/Lensing-code.git
 git push -u origin master
 
