@@ -1,0 +1,29 @@
+# Set coordinate system: reference point in degrees (J2000) and arcsecond offsets
+# Turn off calculation of noise in reconstructed source
+coorsys:   J2000 161.25 58 0 0
+noisemap:  0
+
+
+# Tell pixsrc that the following parameters apply only to merger.uv.fits
+dataname:  merger.uv
+
+# Turn on uv-plane modeling and set pointing center to (0,0)
+# Apply primary beam to data
+# Set maximum uv-distance to model of 1 mega-lambda
+# Tell pixsrc there is no PSF for uv-plane data
+# Set the 1-sigma of Gaussian noise in the data to 7e-4
+uvdata:    1 merger.uv.dat 0 0
+uvpbeam:   1
+uvcutoff:  0 1e6
+psf:       0
+noise:     7e-4
+uvmodelpos: 1 uv_pos_out.dat
+
+# Tell pixsrc that the following parameters apply only to merger.fits
+dataname:  merger
+
+# Tell pixsrc to read PSF from merger.psf.fits 
+# Set the 1-sigma of Gaussian noise in the data to 0.1
+psf:       1
+noise:     0.1
+

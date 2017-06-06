@@ -1,0 +1,9 @@
+For descriptions and comments about the examples here,
+please see the documentation.
+
+The documentation can be found in this directory, or
+it can be created by running the script in the
+"manual" directory as follows:
+
+lensmodel manual.in
+

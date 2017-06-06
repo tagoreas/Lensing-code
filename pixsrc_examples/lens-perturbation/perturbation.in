@@ -1,0 +1,24 @@
+set chimode   = 0
+set gridflag  = 0
+set verbose   = 1
+
+pixsrc on perturbation
+
+setlens 2 1
+ alpha 1     0   0   0.3 -50 0 0 0 0 1
+# alpha 0.25 -0.5 0.2 0     0 0 0 0 0 1
+ none 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0
+optimize myopt
+quit
+
+randomize 1 myrand
+  0.90   1.10
+ -0.15   0.15
+ -0.15   0.15
+  0.20   0.40
+-60.00 -40.00
+
+quit
+

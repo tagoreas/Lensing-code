@@ -1,0 +1,6 @@
+# Set initial guess for sourec to be a Sersic galaxy
+#   with axis ratio q=0.5 and scale length 0.1 arcs
+# Set flags to optimize flux, position, ellipticity,
+#   scale length, and Sersic index
+sersic 1 0 0 0.5 0 0.1 0 1
+1 1 1 1 1 1 0 1

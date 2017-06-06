@@ -26,3 +26,8 @@ is (sort of) optional.
 Additionally, libpixsrc.so can be used by
 "fit-lenses.py" or by Chuck Keeton's gravlens/lensmodel
 code.
+
+Examples of using pixsrc can be found in the
+"pixsrc_examples" directory.
+pixsrc documentation can be found there as well.
+The examples require lensmodel to run. 

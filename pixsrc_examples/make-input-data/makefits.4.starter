@@ -1,0 +1,21 @@
+set gridflag = 0
+
+setlens 1 1
+  none 0 0 0 0 0 0 0 0 0 1
+  0 0 0 0 0 0 0 0 0 0
+
+setsource 1 5000
+  sersic 1 0 0 0. -100 0.4 0 1
+  0 0 0 0 0 0 0 0
+
+
+setlens 2 1
+alpha 1    0   0   0.3 50 0 0 0 0 1
+alpha 0.25 0.5 0.2 0    0 0 0 0 0 1
+  0 0 0 0 0 0 0 0 0 0
+  0 0 0 0 0 0 0 0 0 0
+
+SBmap2 -3 3 51 -3 3 51 3 ring.fits 3
+
+
+quit

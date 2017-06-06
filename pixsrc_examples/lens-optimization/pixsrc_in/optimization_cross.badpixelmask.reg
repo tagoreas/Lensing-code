@@ -1,0 +1,5 @@
+# Region file format: DS9 version 4.1
+# Filename: pixsrc_in/cross.fits
+global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1
+fk5
+polygon(161.24987,58.000102,161.24979,58.000054,161.24976,58.000013,161.2498,57.999965,161.2499,57.999915,161.24998,57.999906,161.25009,57.999945,161.25017,58.000008,161.25013,58.00007,161.25007,58.000109,161.24995,58.000126) # color=cyan width=4

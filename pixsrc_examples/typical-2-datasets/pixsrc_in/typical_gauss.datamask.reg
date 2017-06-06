@@ -1,0 +1,5 @@
+# Region file format: DS9 version 4.1
+# Filename: gauss.fits
+global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1
+fk5
+polygon(161.25107,58.000661,161.24992,58.000967,161.24891,58.000806,161.2479,58.000188,161.24882,57.999394,161.24965,57.999082,161.25037,57.999192,161.25101,57.999316,161.25137,57.999591,161.25152,58.000022,161.25136,58.000386) # color=magenta width=4

@@ -1,0 +1,23 @@
+# Set coordinate system: reference point in degrees (J2000) and arcsecond offsets
+# Turn off calculation of noise in reconstructed source
+# Do not print images to file
+# Print less to screen
+coorsys:   J2000 161.25 58 0 0
+noisemap:  0
+images:    0
+verbosity: 1
+
+# Tell pixsrc to read PSF from cross.psf.fits 
+# Set the 1-sigma of Gaussian noise in the data to 0.1
+# Use 10x10=100 shapelets instead of an adaptive source-plane grid
+# Speed up shapelet evaluation by turning off image pixel splitting
+# Use first order (gradient) source regularization
+# Note: Because the source is relatively compact, this could be improved by using more shapelets, increasing pixel splitting, or by using a pixelated grid with dense oversampling
+psf:           1
+noise:         0.1
+shapelets:     1 10 10
+shapepixsplit: 1 1
+
+# Quickly reject lens models for which the regions masked in "optimization_cross.mmimages.*.reg" do not overlap in the source plane
+
+penalty4: 2 0 0 0 1 1e-5
