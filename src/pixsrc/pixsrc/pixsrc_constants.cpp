@@ -70,8 +70,8 @@ const char   pixsrc_constants::psffile[] = ".psf.fits";
 const double pixsrc_constants::cutoff    = 2.575829303548901;
 // conversion from FWHM of gaussian dist. to sigma
 const double pixsrc_constants::fwhm2sigma= 2.3548200450309493;
-const double pixsrc_constants::mm_stepsize = 0.05;
-const double pixsrc_constants::mm_stepsize_area = 0.05;
+const double pixsrc_constants::mm_stepsize = 0.5;
+const double pixsrc_constants::mm_stepsize_area = 0.5;
 const PS_SIT    pixsrc_constants::precision0 = 7;
 const PS_SIT    pixsrc_constants::regspeed = 1;
 const PS_SIT    pixsrc_constants::longstringsize = 1000;

@@ -1186,8 +1186,7 @@ void pixsrc_init::readmasks(char *bn, char **name, char **namewithext, inputdata
 
 void pixsrc_init::create_mm_border (double ***polys_, PS_SIT dim1, PS_SIT dim2, PS_SIT src, PS_SIT g, inputdata *data_, commoninputdata *cdata_)
 {
-    double steps = CONSTANT mm_stepsize; // steps in arcseconds
-    steps *= data_[g].arc2pix;
+    double steps = CONSTANT mm_stepsize; // steps in pixel units
 
     double **polys = *polys_;
     MEMORY ps_malloc (&(data_[g].mmborder[src]), dim1);

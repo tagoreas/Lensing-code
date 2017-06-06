@@ -813,8 +813,7 @@ void pixsrc_common::testformismatchedimages(inputdata *data_, commoninputdata *c
 
         if(/*!vars_->terminatelensing && */data_->penaltymatrix[src][3][0])
         {
-            double steps = CONSTANT mm_stepsize_area; // steps in arcseconds
-            steps *= data_->arc2pix;
+            double steps = CONSTANT mm_stepsize_area; // steps in pixel units
 
             // compare pairs of images
             for(PS_SIT img1=0; img1<numimgs; img1++)
