@@ -31,7 +31,7 @@ CXXFLAGS = 		-O2 -g -fPIC -Wall -fmessage-length=0 $(PREC) \
 			-I../../pixsrc/wcstools/libwcs \
 			-I./
 
-CFLAGS = 		-O2 -g -fPIC -Wall -fmessage-length=0 -Wno-strict-overflow $(PREC)
+CFLAGS = 		-O2 -g -fPIC -Wall -fmessage-length=0 $(PREC)
 
 
 
