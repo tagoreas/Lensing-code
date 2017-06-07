@@ -594,8 +594,9 @@ void pixsrc_common::resubsample_ie( void *args )
                                  "re-oversampling sister pixels for interpolation errors",
                                  cdata_->print2screenmutex);
 
-        PS_SIT x, y, xxx, yyy, ss;
+        PS_SIT x, y, ss;
         PS_SIT ss2 = data_->interperr*data_->interperr;
+	double xxx, yyy;
         double one_2ss = 1.0 / ( 2 * data_->interperr );
 
         double magxx, magxy, magyx, magyy, pot;
@@ -1362,7 +1363,7 @@ void pixsrc_common::sourcereconstructions(inputdata *data_, commoninputdata *cda
         if( data_->traceparams[2]>0 )
         {
             vars_->lambda1 = data_->traceparams[0] *
-                std::pow(data_->traceparams[1],vars_->tracker);
+                std::pow(data_->traceparams[1],vars_->tracker+0.);
         }
         else if( data_->lambdaguess<0 )
         {
@@ -2614,7 +2615,7 @@ void pixsrc_common::printuvresiduals (inputdata *data_, commoninputdata *cdata_,
         MATRIX weights   (cdata_, data_, num_ndp+numextraRBF, 2, -1, -1, data_);
         VECTOR ft        (cdata_, data_, 2);
         // get Fourier transform and residuals
-        PS_SIT numblocks = std::ceil(numuvpts/1000.0);
+        PS_SIT numblocks = (PS_SIT)std::ceil(numuvpts/1000.0);
         PS_SIT uvind = 0;
         for (PS_SIT uv=0; uv<numuvpts; ++uv)
         {

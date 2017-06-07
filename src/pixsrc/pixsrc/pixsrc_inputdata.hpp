@@ -205,7 +205,7 @@ struct inputdata
     bool doreconstruction;
     bool nopsf;
     bool psffromfile;
-    double psf_oversample;
+    PS_SIT psf_oversample;
     double fwhm_weight;
     bool debug;
     bool fatalwarn;

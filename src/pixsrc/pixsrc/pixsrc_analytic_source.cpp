@@ -390,8 +390,8 @@ double pixsrc_analytic_source::lenssourceandreturnchi2(const gsl_vector *gslv, v
                     ++sum_vary;
                     if (sum_vary == i)
                     {
-                        srctype = srclocflags[1+j*17];
-                        j = srclocflags[0];
+		      srctype = (PS_SIT)srclocflags[1+j*17];
+		      j = (PS_SIT)srclocflags[0];
                         break;
                     }
                 }
@@ -480,7 +480,7 @@ void pixsrc_analytic_source::setusersource( inputdata *data_, commoninputdata *c
     {
         double sum;
         double basepenalty = 1.0e100;
-        PS_SIT totmt = sourceloc[0]*8;
+        PS_SIT totmt = (PS_SIT)sourceloc[0]*8;
 
         for( PS_SIT n=0; n<numbounds; ++n )
         {
@@ -518,7 +518,7 @@ void pixsrc_analytic_source::setusersource( inputdata *data_, commoninputdata *c
 
 void pixsrc_analytic_source::expandsrc( inputdata *data_, commoninputdata *cdata_, lensvar *vars_, double *src, double **srcreturn, double *src0 )
 {
-    PS_SIT length = src0[0]*9+1;
+  PS_SIT length = (PS_SIT)src0[0]*9+1;
     /*
       if( *srcreturn )
       MEMORY ps_free( *srcreturn );
@@ -548,7 +548,7 @@ void pixsrc_analytic_source::expandsrc( inputdata *data_, commoninputdata *cdata
 
 void pixsrc_analytic_source::expandsrcwithflags( inputdata *data_, commoninputdata *cdata_, lensvar *vars_, double *src, double **srcreturn, double *src0 )
 {
-    PS_SIT length = src0[0]*17+1;
+  PS_SIT length = (PS_SIT)src0[0]*17+1;
     /*
       if( *srcreturn )
       MEMORY ps_free( *srcreturn );
@@ -601,7 +601,7 @@ void pixsrc_analytic_source::srcflux( inputdata *data_, commoninputdata *cdata_,
     double x=0,y=0,val,qaxis;
     double cos1,sin1,xrot,yrot;
 
-    PS_SIT numsrcs = sourceloc_[0];
+    PS_SIT numsrcs = (PS_SIT)sourceloc_[0];
     double *sourceloc;
     MEMORY ps_malloc( &sourceloc, 1 + numsrcs*9 + sourcetype*numsrcs*8  );
     std::copy(       sourceloc_,
@@ -638,7 +638,7 @@ void pixsrc_analytic_source::srcflux( inputdata *data_, commoninputdata *cdata_,
             // if vector image
             if (srcdata[0]>1000)
             {
-                PS_SIT vecindex = srcdata[0]-1001;
+	      PS_SIT vecindex = (PS_SIT)srcdata[0]-1001;
                 // convert shift from arcsec to pixel with a little hack
 
                 // first find image position of first pixel (unshifted)
@@ -714,7 +714,7 @@ void pixsrc_analytic_source::srcflux( inputdata *data_, commoninputdata *cdata_,
             // if vector image
             if (srcdata[0]>1000)
             {
-                PS_SIT vecindex = srcdata[0]-1001;
+	      PS_SIT vecindex = (PS_SIT)srcdata[0]-1001;
                 PS_SIT numpoints = data_->vector_src_numpix[vecindex];
 
                 struct triangulateio *trioutloc = data_->vector_src_triout[vecindex];
@@ -821,7 +821,7 @@ void pixsrc_analytic_source::imgflux (inputdata *data_, commoninputdata *cdata_,
     double x=0,y=0,xx,yy,val,qaxis;
     double cos1,sin1,xrot,yrot;
 
-    PS_SIT numsrcs = sourceloc_[0];
+    PS_SIT numsrcs = (PS_SIT)sourceloc_[0];
     double *sourceloc;
     MEMORY ps_malloc( &sourceloc, 1 + numsrcs*9 + sourcetype*numsrcs*8  );
     std::copy(       sourceloc_,

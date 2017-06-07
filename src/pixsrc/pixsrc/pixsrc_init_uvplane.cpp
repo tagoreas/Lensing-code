@@ -794,7 +794,7 @@ void pixsrc_init::uvdata_img2uv (inputdata *data_, commoninputdata *cdata_)
 			
 			// loop over image pixels (lensed sky plane data)
 			double img_pos_xy[2], img_pos_radec[2], pb_pos_xy[2];
-			double surrpix[2];
+			PS_SIT surrpix[2];
 			pthread_mutex_lock (cdata_->wcsmutex);
 			for (PS_SIT i=0; i<num_ndp; ++i)
 			{

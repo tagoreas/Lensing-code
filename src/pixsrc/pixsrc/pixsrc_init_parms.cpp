@@ -1315,7 +1315,7 @@ void pixsrc_init::setdefaultparameters(char *bn, char **name, char **namewithext
         data_[g].lowmem             = (PS_SIT)pstruct[pind->ps_parm_ind_lowmem].fvalue[0];
         data_[g].uv_taper           =      pstruct[pind->ps_parm_ind_uvtaper].fvalue[0];
         data_[g].uv_newpixelscale   =      pstruct[pind->ps_parm_ind_uvnewpixelscale].fvalue[0];
-        data_[g].uv_padzeros        =      pstruct[pind->ps_parm_ind_uvpadzeros].fvalue[0];
+        data_[g].uv_padzeros        = (PS_SIT)pstruct[pind->ps_parm_ind_uvpadzeros].fvalue[0];
         data_[g].uv_rbftype         = (PS_SIT)pstruct[pind->ps_parm_ind_uvrbf].fvalue[0];
         data_[g].uv_rbfscale        =      pstruct[pind->ps_parm_ind_uvrbf].fvalue[1];
         data_[g].uv_del1            = (PS_SIT)pstruct[pind->ps_parm_ind_uvmatrixsize].fvalue[0];
@@ -1393,8 +1393,8 @@ void pixsrc_init::setdefaultparameters(char *bn, char **name, char **namewithext
         if (data_[g].fixedshapeletparms[0])
             PRINTER printerror("",pstruct[pind->ps_parm_ind_shapeparms].sname +" bad default value.",cdata_->print2screenmutex);
 
-        std::copy (pstruct[pind->ps_parm_ind_shapepixsplit].fvalue.begin(),
-                   pstruct[pind->ps_parm_ind_shapepixsplit].fvalue.end(), data_[g].shapeletpixsplit);
+	data_[g].shapeletpixsplit[0] = (PS_SIT)pstruct[pind->ps_parm_ind_shapepixsplit].fvalue[0];
+	data_[g].shapeletpixsplit[1] = (PS_SIT)pstruct[pind->ps_parm_ind_shapepixsplit].fvalue[1];
 
         data_[g].rottrans[0] = 1; // cosine term
         std::fill (data_[g].rottrans+1, data_[g].rottrans+6, 0);
@@ -1916,7 +1916,7 @@ void pixsrc_init::readparameters(char *bn, char **name, char **namewithext, inpu
             {
                 if(imageindex!=-1 && imageindex!=g)
                     continue;
-                data_[g].interperr = input[0];
+                data_[g].interperr = (PS_SIT)input[0];
             }
         }
         else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_irscheme],
@@ -2173,7 +2173,7 @@ void pixsrc_init::readparameters(char *bn, char **name, char **namewithext, inpu
             {
                 if(imageindex!=-1 && imageindex!=g)
                     continue;
-                data_[g].subsampling = input[0];
+                data_[g].subsampling = (PS_SIT)input[0];
             }
         }
         else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_debug],
@@ -2303,7 +2303,7 @@ void pixsrc_init::readparameters(char *bn, char **name, char **namewithext, inpu
                     ptr = strtok( NULL, " " );
                     strcpy (data_[g].uv_filename, ptr);
 
-                    data_[g].uv_mode        = input[0];
+                    data_[g].uv_mode        = (PS_SIT)input[0];
                     data_[g].transmode      = 1==input[0] ? 1 : 0;
                     data_[g].uv_pointing[0] = input[2];
                     data_[g].uv_pointing[1] = input[3];
@@ -2656,7 +2656,7 @@ void pixsrc_init::readparameters(char *bn, char **name, char **namewithext, inpu
             {
                 if(imageindex!=-1 && imageindex!=g)
                     continue;
-                cdata_->numthreads = input[0];
+                cdata_->numthreads = (PS_SIT)input[0];
             }
         }
         else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_minangle],

@@ -120,7 +120,7 @@ void pixsrc_init::setsource( char *argv, inputdata *data_, commoninputdata *cdat
         // length of array to hold all sources
         // 17 for 1 profile type, 8 params, and 8 vary_or_not flags
         // +1 for first element that holds number of sources
-        PS_SIT length = 17*numsrc+1;
+        PS_SIT length = 17*(PS_SIT)numsrc+1;
 
         double *temp = data_->usersetsrc;
         data_->usersetsrc = NULL;
@@ -244,7 +244,7 @@ void pixsrc_init::setsourcebounds( char *argv, inputdata *data_, commoninputdata
 
     data_->numsrcbounds = filesize;
 
-    MEMORY ps_malloc( &(data_->srcbounds), data_->numsrcbounds, data_->usersetsrc[0]*8+2 );
+    MEMORY ps_malloc( &(data_->srcbounds), data_->numsrcbounds, (size_t)data_->usersetsrc[0]*8+2 );
 
     // pj = index of source parameter (0..number_of_sources*8)
     // iii = source number (>=1)

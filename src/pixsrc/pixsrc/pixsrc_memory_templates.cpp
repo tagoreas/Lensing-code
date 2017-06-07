@@ -54,7 +54,7 @@ void pixsrc_memory::ps_malloc( T **ptr, size_t dim1 )
             std::cerr << "pixsrc :: WARNING: trying to malloc "
                       << 1.0e-9*(double)(dim1 *sizeof(T)) << " Gbytes\n"
                 "waiting for memory to be available .." << std::endl;
-            usleep (1e7);
+            usleep ((size_t)1e7);
         }
         else if(0)
         {
@@ -106,7 +106,7 @@ void pixsrc_memory::ps_malloc( T ***ptr, size_t dim1 , size_t dim2 )
             std::cerr << "pixsrc :: WARNING: trying to malloc "
                       << 1.0e-9*(dim1 *sizeof(T*)) << " Gbytes\n"
                 "waiting for memory to be available .." << std::endl;
-            usleep (1e7);
+            usleep ((size_t)1e7);
         }
 
 #ifdef PIXSRC_MEMORYDEBUG
@@ -146,7 +146,7 @@ void pixsrc_memory::ps_malloc( T ****ptr, size_t dim1 , size_t dim2 , size_t dim
             std::cerr << "pixsrc :: WARNING: trying to malloc "
                       << 1.0e-9*(dim1 *sizeof(T**)) << " Gbytes\n"
                 "waiting for memory to be available .." << std::endl;
-            usleep (1e7);
+            usleep ((size_t)1e7);
         }
 
 #ifdef PIXSRC_MEMORYDEBUG
@@ -186,7 +186,7 @@ void pixsrc_memory::ps_malloc( T *****ptr, size_t dim1 , size_t dim2 , size_t di
             std::cerr << "pixsrc :: WARNING: trying to malloc "
                       << 1.0e-9*(dim1 *sizeof(T***)) << " Gbytes\n"
                 "waiting for memory to be available .." << std::endl;
-            usleep (1e7);
+            usleep ((size_t)1e7);
         }
 
 #ifdef PIXSRC_MEMORYDEBUG
@@ -290,7 +290,7 @@ void pixsrc_memory::ps_realloc( T **ptr, size_t dim1 )
             std::cerr << "pixsrc :: WARNING: trying to malloc "
                       << 1.0e-9*(dim1 *sizeof(T)) << " Gbytes\n"
                 "waiting for memory to be available .." << std::endl;
-            usleep (1e7);
+            usleep ((size_t)1e7);
         }
     }
     while( !(*ptr) );

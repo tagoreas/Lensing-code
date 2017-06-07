@@ -71,7 +71,7 @@ void pixsrc_init::finalizeNcounterindications(char *bn, char **name, char **name
         if( data_[g].magparams && data_[g].traceparams[2] &&
             data_[g].magparams != ( data_[g].traceparams[2]+1 ) )
         {
-            data_[g].magparams = data_[g].traceparams[2]+1;
+	  data_[g].magparams = (PS_SIT)data_[g].traceparams[2]+1;
             /*
               PRINTER printerror("","cannot trace magnification and regularization "
               "strength simultaneously if sampling is different!",
