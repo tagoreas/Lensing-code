@@ -138,13 +138,13 @@ void pixsrc_irrcart::creategrid0()
 
     /*
       vars_->levelmag1=1;
-      while(pow(vars_->zeroethgridsize/pow(2,vars_->levelmag1+1),2)>vars_->match2mag1)
+      while(std::pow(vars_->zeroethgridsize/std::pow(2,vars_->levelmag1+1),2)>vars_->match2mag1)
       vars_->levelmag1++;
-      if(pow(2,vars_->levelmag1)>vars_->zeroethgridsize)
-      vars_->zeroethgridsize=pow(2,vars_->levelmag1);
+      if(std::pow(2,vars_->levelmag1)>vars_->zeroethgridsize)
+      vars_->zeroethgridsize=std::pow(2,vars_->levelmag1);
       vars_->startlevel=vars_->levelmag1;
       while(vars_->startlevel-1>0)
-      if(0.5*vars_->mindensity<vars_->match2mag1*pow(4,vars_->startlevel-vars_->levelmag1))
+      if(0.5*vars_->mindensity<vars_->match2mag1*std::pow(4,vars_->startlevel-vars_->levelmag1))
       vars_->startlevel--;
       else
       break;
@@ -154,7 +154,7 @@ void pixsrc_irrcart::creategrid0()
     vars_->levelmag1 = (1+(data_->levelshift-2))/vars_->zeroethgridsize/vars_->zeroethgridsize;
 
     vars_->maxgridlevel=0;
-    while(!OPERA equalszero(vars_->zeroethgridsize/pow(2,vars_->maxgridlevel+1)))
+    while(!OPERA equalszero(vars_->zeroethgridsize/std::pow(2.,vars_->maxgridlevel+1.)))
         vars_->maxgridlevel++;
 }
 void pixsrc_irrcart::createc4c()
@@ -569,7 +569,7 @@ void pixsrc_irrcart::setsrclocall()
                 PS_SIT length = path.size();
                 double posAtCtr[2];
                 positionofnode(path, posAtCtr);
-                double finSpacing = vars_->zeroethgridsize/pow(2,length+1);
+                double finSpacing = vars_->zeroethgridsize/std::pow(2.,length+1.);
 
                 for(PS_unsignedSIT v=0; v<(*(vars_->gridpointer))[level][m][m2].size(); v++)
                     if((*(vars_->gridpointer))[level][m][m2][v]==-1)
@@ -815,11 +815,11 @@ void pixsrc_irrcart::findsurroundingboxes(vector<PS_SIT> &path, PS_SIT lastIndex
         }
     else
     {
-        PS_SIT maxIncrement = OPERA round(pow(2,length-1));
+        PS_SIT maxIncrement = OPERA round(std::pow(2.,length-1.));
         PS_SIT distX=0, distY=0;
         for(PS_SIT b=0; b<length; b++)
         {
-            PS_SIT increment=maxIncrement/OPERA round(pow(2,b));
+	  PS_SIT increment=maxIncrement/OPERA round(std::pow(2.,b+0.));
             if(path[b]==0 || path[b]==3)
                 distX+=increment;
             if(path[b]==2 || path[b]==3)
@@ -878,7 +878,7 @@ void pixsrc_irrcart::findsurroundingboxes(vector<PS_SIT> &path, PS_SIT lastIndex
 
             for(PS_SIT level=0; level<length; level++)
             {
-                PS_SIT increment=maxIncrement/OPERA round(pow(2,level));
+                PS_SIT increment=maxIncrement/OPERA round(std::pow(2.,level+0.));
                 if(distSurr[b][0]>=increment)
                 {
                     distSurr[b][0]-=increment;
@@ -912,7 +912,7 @@ void pixsrc_irrcart::testthisnodewithgivendensityandaddtogrid(double x, double y
     while(1)
     {
         //if(density>OPERA round(std::pow(4.0,size-vars_->levelmag1)/z2))
-        if( density >= std::pow(4.0,size) * vars_->levelmag1 )
+        if( density >= std::pow(4.0,size+0.) * vars_->levelmag1 )
             size++;
         else
             break;
@@ -970,7 +970,7 @@ void pixsrc_irrcart::testthisnodewithgivendensityandaddtogrid(double x, double y
     {
         double position[2];
         positionofnode(path, position);
-        double spacing = vars_->zeroethgridsize/pow(2,path.size()+1);
+        double spacing = vars_->zeroethgridsize/std::pow(2.,path.size()+1.);
         if( GEOM fallsinsrcinputcircle(
                 position[0]+spacing,position[1]-spacing,
                 data_->srcinputcircle,data_->extlengths[2]) ||
@@ -993,7 +993,7 @@ void pixsrc_irrcart::positionofnode(vector<PS_SIT> &path, double *result)
 
     for(PS_unsignedSIT m=0; m<=path.size(); m++)
     {
-        double spacing = vars_->zeroethgridsize/pow(2,m+1);
+        double spacing = vars_->zeroethgridsize/std::pow(2.,m+1.);
 
 
         if(m==path.size())
