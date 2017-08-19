@@ -20,6 +20,8 @@ dimensional half light radii.
 The third library (*libpixsrc.so*) is used for modeling
 the extended source emission of a lensed object.
 
+**How do I use it?**
+
 "fit-lenses.py" does MCMC sampling of the lens
 parameter space. It requires the libstple_lenscalc.so
 and libeval-tps-avd-hmpr.so libraries, but libpixsrc.so
