@@ -1,5 +1,7 @@
 
-The code here can be compiled into three distinct
+**What does this code do?**
+
+The code here can be compiled into *three* distinct 
 libraries (See the INSTALL file).
 They do various things:
 - Modeling quasar time delays using triaxial lenses.
@@ -7,15 +9,15 @@ They do various things:
   triaxial lenses.
 - Modeling lensed, extended source emission.
 
-One of these (libstple_lenscalc.so) is used for
+One of these (*libstple_lenscalc.so*) is used for
 calculating deflections, time delays, solving the
 lens equations, and calculating a chi^2 value.
 
-The second (libeval-tps-avd-hmpr.so) is used for
+The second (*libeval-tps-avd-hmpr.so*) is used for
 calculating aperture velocity dispersions and two-
 dimensional half light radii.
 
-The third library (libpixsrc.so) is used for modeling
+The third library (*libpixsrc.so*) is used for modeling
 the extended source emission of a lensed object.
 
 "fit-lenses.py" does MCMC sampling of the lens
