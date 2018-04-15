@@ -199,7 +199,7 @@ PIXSRC_SRC_TEMPL =	pixsrc_memory_templates.cpp \
 PIXSRC_OBJ_SHARED_ST =	$(PIXSRC_OBJ) \
 			../../pixsrc/wcstools/libwcs/libwcs.a
 
-PIXSRC_OBJ_SHARED_SH = 	-lgsl -lumfpack -lamd -lcholmod -lcolamd -lccolamd -lcamd -lcfitsio -lpthread
+PIXSRC_OBJ_SHARED_SH = 	-lgsl -lumfpack -lcfitsio -lpthread
 ifeq ($(USE_PIXSRC_BLAS_OPENBLAS),YES)
 PIXSRC_OBJ_SHARED_SH +=	-lopenblas
 endif
