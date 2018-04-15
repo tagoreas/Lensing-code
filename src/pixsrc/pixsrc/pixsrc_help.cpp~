@@ -862,7 +862,7 @@ void pixsrc_help::ps_template ()
     PRINTER printfitsimgplane (0, "", "",
                                "pixsrc", 0, filename,
                                data1, wcsinfo, imgx, imgy, 1,
-                               dummy1, NULL, 1, 1, NULL);
+                               dummy1, NULL, 1, 1);
 
     MEMORY ps_free (dummy1);
     MEMORY ps_free (data1);

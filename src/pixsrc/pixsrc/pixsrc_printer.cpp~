@@ -64,8 +64,8 @@ void pixsrc_printer::printfitssrcplane(PS_SIT tracker, string basename, string i
                                        PS_SIT imgx, PS_SIT imgy, double *im, double *wcsinfo,
                                        pthread_mutex_t *lock, bool writehdr, bool nonstandardname, pthread_mutex_t *fits_lock)
 {
-  if (fits_lock)
-    pthread_mutex_lock(fits_lock);
+
+  pthread_mutex_lock(fits_lock);
 
     if (!nonstandardname)
     {
@@ -221,7 +221,6 @@ void pixsrc_printer::printfitssrcplane(PS_SIT tracker, string basename, string i
     if ( fits_close_file(fptr, &status) )                /* close the file */
         printwarning( print2screenname, "error writing " + filenametemp, lock);
 
-  if (fits_lock)
     pthread_mutex_unlock(fits_lock);
 }
 void pixsrc_printer::printfitsimgplane(PS_SIT tracker, string basename, string imagename,

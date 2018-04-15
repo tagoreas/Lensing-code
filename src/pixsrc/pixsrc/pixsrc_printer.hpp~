@@ -48,9 +48,9 @@ public:
     static void closeoutstream   ( std::ofstream*                                              );
     static void print            ( PS_SIT, string, string, bool, string, PS_SIT, PS_SIT, pixsrc_matrix*, bool );
     static void printfitssrcplane( PS_SIT, string, string, string, bool, string, PS_SIT,
-                                   PS_SIT, double*, double*, pthread_mutex_t*, bool, bool, pthread_mutex_t*         );
+                                   PS_SIT, double*, double*, pthread_mutex_t*, bool, bool         );
     static void printfitsimgplane( PS_SIT, string, string, string, bool, string, const double*,
-                                   double*, PS_SIT, PS_SIT, double, PS_SIT*, pthread_mutex_t*,bool, bool, pthread_mutex_t*);
+                                   double*, PS_SIT, PS_SIT, double, PS_SIT*, pthread_mutex_t*,bool, bool);
     static void print2screen     ( string, string, pthread_mutex_t*                            );
     static void printwarning     ( string, string, pthread_mutex_t*                            );
     static void printerror       ( string, string, pthread_mutex_t*                            );

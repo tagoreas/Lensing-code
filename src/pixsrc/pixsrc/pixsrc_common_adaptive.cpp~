@@ -918,17 +918,17 @@ void pixsrc_common_adaptive::actualprintsource (inputdata *data_, commoninputdat
         }
         PRINTER printfitssrcplane( vars_->tracker, cdata_->basename, data_->name,
                                    data_->print2screenname, 1,outname,vars_->srcx,
-                                   vars_->srcy,im,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex);
+                                   vars_->srcy,im,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0);
         if (data_->use_shapelets && data_->noisemap)
         {
             outname = "noise.fits";
             PRINTER printfitssrcplane( vars_->tracker, cdata_->basename, data_->name,
                                        data_->print2screenname, 1,outname,vars_->srcx,
-                                       vars_->srcy,im_n,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex);
+                                       vars_->srcy,im_n,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0);
             outname = "s2n.fits";
             PRINTER printfitssrcplane( vars_->tracker, cdata_->basename, data_->name,
                                        data_->print2screenname, 1,outname,vars_->srcx,
-                                       vars_->srcy,im_s2n,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex);
+                                       vars_->srcy,im_s2n,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0);
         }
 
     }

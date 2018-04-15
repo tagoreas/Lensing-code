@@ -2433,7 +2433,7 @@ void pixsrc_common::blurit(inputdata *data_, commoninputdata *cdata_, lensvar *v
                                        data_->print2screenname, 1,"psf.fits",
                                        temparray, data_->wcsinfo,data_->extlengths[9],
                                        data_->extlengths[10],1,dummy,
-                                       cdata_->print2screenmutex, 0, 0, cdata_->fitsiomutex );
+                                       cdata_->print2screenmutex, 0, 0 );
 
             MEMORY ps_free( temparray );
             MEMORY ps_free(   dummy   );
@@ -2525,22 +2525,22 @@ void pixsrc_common::printimageplanebody(inputdata *data_, commoninputdata *cdata
             PRINTER printfitsimgplane( vars_->tracker, cdata_->basename, data_->name,
                                        data_->print2screenname, 1,"data.fits",
                                        temparray,data_->wcsinfo,data_->imgx,data_->imgy,1,
-                                       vars_->r4r, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex );
+                                       vars_->r4r, cdata_->print2screenmutex, 1, 0 );
             temparray = vars_->lensedmps->get_vec_ptr();
             PRINTER printfitsimgplane( vars_->tracker, cdata_->basename, data_->name,
                                        data_->print2screenname, 1,"lensedmps.fits",
                                        temparray,data_->wcsinfo,data_->imgx,data_->imgy,1,
-                                       vars_->r4r, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex );
+                                       vars_->r4r, cdata_->print2screenmutex, 1, 0 );
             temparray = lensedmpsnobo->get_vec_ptr();
             PRINTER printfitsimgplane( vars_->tracker, cdata_->basename, data_->name,
                                        data_->print2screenname, 1,"lensedmpsnobo.fits",
                                        temparray,data_->wcsinfo,data_->imgx,data_->imgy,1,
-                                       vars_->r4r, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex );
+                                       vars_->r4r, cdata_->print2screenmutex, 1, 0 );
             temparray = vars_->residual->get_vec_ptr();
             PRINTER printfitsimgplane( vars_->tracker, cdata_->basename, data_->name,
                                        data_->print2screenname, 1,"residuals.fits",
                                        temparray,data_->wcsinfo,data_->imgx,data_->imgy,1,
-                                       vars_->r4r, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex );
+                                       vars_->r4r, cdata_->print2screenmutex, 1, 0 );
 
             if( data_->interperr )
             {
@@ -2554,7 +2554,7 @@ void pixsrc_common::printimageplanebody(inputdata *data_, commoninputdata *cdata
                 PRINTER printfitsimgplane( vars_->tracker, cdata_->basename, data_->name,
                                            data_->print2screenname, 1, "interperr.fits",
                                            temparray,data_->wcsinfo, data_->imgx,data_->imgy,
-                                           1, vars_->r4r, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex );
+                                           1, vars_->r4r, cdata_->print2screenmutex, 1, 0 );
             }
         }
 

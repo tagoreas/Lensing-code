@@ -607,7 +607,7 @@ void pixsrc_cartesian::printsource()
 
         PRINTER printfitssrcplane( vars_->tracker, cdata_->basename, data_->name,
                                    data_->print2screenname, 1,"mps.fits",vars_->srcx,
-                                   vars_->srcy,im,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0, cdata_->fitsiomutex );
+                                   vars_->srcy,im,vars_->wcsinfo, cdata_->print2screenmutex, 1, 0 );
 
         MEMORY ps_free( im );
     }

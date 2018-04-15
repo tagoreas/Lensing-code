@@ -451,11 +451,9 @@ void pixsrc_init::settingup(char * bn, char **name, char **namewithext, inputdat
     MEMORY ps_malloc( &(cdata_->print2screenmutex), 1    );
     MEMORY ps_malloc( &(cdata_->potdefmagmutex   ), 1    );
     MEMORY ps_malloc( &(cdata_->wcsmutex         ), 1    );
-    MEMORY ps_malloc( &(cdata_->fitsiomutex      ), 1    );
     pthread_mutex_init( cdata_->print2screenmutex , NULL );
     pthread_mutex_init( cdata_->potdefmagmutex    , NULL );
     pthread_mutex_init( cdata_->wcsmutex          , NULL );
-    pthread_mutex_init( cdata_->fitsiomutex       , NULL );
 
     MEMORY ps_malloc( &(cdata_->attrjoinable), 1 );
     MEMORY ps_malloc( &(cdata_->attrdetached), 1 );
