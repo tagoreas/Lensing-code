@@ -98,6 +98,13 @@ void pixsrc_init::finalizeNcounterindications(char *bn, char **name, char **name
         }
         if(data_[g].maguncertainty)
         {
+	    if(data_[g].use_shapelets) {
+	        PRINTER printerror(
+		    "pixsrc",
+		    "Cannot currently compute mag. uncertainties using shapelets. Use gridded source.",
+		    cdata_->print2screenmutex);
+	    }
+	  
             MEMORY ps_malloc( &(data_[g].mag_errsptr        ), 1 );
             data_[g].mag_errs = new (data_[g].mag_errsptr) outstreamstruct;
 
