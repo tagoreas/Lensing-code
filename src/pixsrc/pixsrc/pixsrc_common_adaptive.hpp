@@ -47,6 +47,8 @@ private:
     static void getmagnificationbody   (inputdata*, commoninputdata*, lensvar*);
     static void createcbody            (inputdata*, commoninputdata*, lensvar*);
     static void getmagfromtriangulation(inputdata*, commoninputdata*, lensvar*);
+    static void getmagfromtriangulation_with_err(inputdata*, commoninputdata*, lensvar*);
+    static void getmagfromtriangulation_with_err_diagonals(inputdata*, commoninputdata*, lensvar*);
     static void actualprintsource      (inputdata*, commoninputdata*, lensvar*, VECTOR*);
     static void printsourcebody        (inputdata*, commoninputdata*, lensvar*);
 

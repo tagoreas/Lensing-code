@@ -38,6 +38,8 @@ typedef double PS_FPT;
 #include <cstring>
 #include <iomanip>
 
+extern "C" void dpotrf_(char*, int*, double*, int*, int*);
+
 // this function is passed to std::transform
 PS_SIT op_decrease (PS_SIT i) {return --i;}
 
@@ -2190,6 +2192,116 @@ void pixsrc_matrix::noise_invA( VECTOR *noise, PS_SIT numthreads, PS_SIT *err  )
     for(PS_SIT proc=0; proc<numthreads; proc++)
         pthread_join(threadshere[proc],NULL);
 }
+
+
+
+
+
+
+
+
+
+
+// structure for inverting matrix
+struct noise_struct_fullmat
+{
+    MATRIX *a;
+    PS_SIT lower, upper;
+    double *noise;
+};
+
+void* pixsrc_matrix::noise_invA_body_fullmat( void *args )
+{
+    // code passed to pthreads for multithreading, for inverting matrix
+
+    noise_struct_fullmat *ts = (noise_struct_fullmat*)args;
+
+    VECTOR *dummy1, *dummy2, *res, *col;
+    MEMORY ps_malloc( &dummy1, 1 );
+    MEMORY ps_malloc( &dummy2, 1 );
+
+    res = new (dummy1) VECTOR( ts->a->cdata_, ts->a->data_, ts->a->ncol );
+    col = new (dummy2) VECTOR( ts->a->cdata_, ts->a->data_, ts->a->nrow );
+
+    if( res->are_we_using_cuda )
+    {
+        // have to initilalize vecs here because ideally, this would
+        // be done on the gpu and not on the cpu
+        res->init_cpu_vec();
+        col->init_cpu_vec();
+    }
+
+    for(PS_SIT g=ts->lower; g<ts->upper; g++)
+    {
+        std::fill( col->vec, col->vec + col->get_size(), (PS_FPT)0 );
+        col->vec[g] = (PS_FPT)1;;
+
+        ts->a->linequationsolve(res,col,1);
+	for (PS_SIT gg=0; gg<ts->a->ncol; ++gg)
+	  ts->noise[g*ts->a->ncol + gg] = res->get(gg);
+    }
+
+    res->~VECTOR();
+    col->~VECTOR();
+
+    MEMORY ps_free( dummy1 );
+    MEMORY ps_free( dummy2 );
+
+    return NULL;
+}
+
+void pixsrc_matrix::noise_invA_fullmat( double *noise, PS_SIT numthreads, PS_SIT *err  )
+{
+    // error check
+    if( err && *err )
+    {
+        return;
+    }
+
+    // update CPU
+    //noise->update_cpu();
+
+    // dense stuff (for shapelets)
+    if (is_dense)
+    {
+      PRINTER printerror (data_->print2screenname,
+			  "Full source covariance matrix for shapelets not supported yet.",
+			  cdata_->print2screenmutex);
+    }
+
+    // set up and launch multiple threads
+    PS_SIT interval = ncol/numthreads;
+    noise_struct_fullmat noise_structs[numthreads];
+    pthread_t threadshere[numthreads];
+
+    for(PS_SIT proc=0; proc<numthreads; proc++)
+    {
+        noise_structs[proc].a  = this;
+        noise_structs[proc].lower= proc   *interval;
+        noise_structs[proc].upper=(proc+1)*interval;
+        noise_structs[proc].noise=noise;
+        if(proc==numthreads-1)
+            noise_structs[proc].upper = ncol;
+
+        pthread_create(&threadshere[proc], &attr, noise_invA_body_fullmat, &noise_structs[proc]);
+    }
+
+    for(PS_SIT proc=0; proc<numthreads; proc++)
+        pthread_join(threadshere[proc],NULL);
+
+    char uplo = 'L';
+    int info=0;
+    int dimm = ncol;
+    dpotrf_(&uplo, &dimm, noise, &dimm, &info);
+}
+
+
+
+
+
+
+
+
 
 // structure for calculating trace of inverse(A)*B
 struct tracestruct

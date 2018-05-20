@@ -548,25 +548,40 @@ void pixsrc_common_adaptive::getmagnificationbody(inputdata *data_, commoninputd
         return;
     }
 
+    if( data_->maguncertainty ) {
+
+        //double mag_errs[7] = {-1,-1,-1,-1,-1,-1,-1};
+
+        if (data_->fullsrccov)
+            getmagfromtriangulation_with_err(data_, cdata_, vars_);
+        else
+            getmagfromtriangulation_with_err_diagonals(data_, cdata_, vars_);
+
+        //PRINTER writeoutstream <double> (mag_errs,7,data_->mag_errs->stream,data_->mag_errs->lock, data_->precision, NULL);
+    }
+
     if(data_->magparams || data_->penaltyquery[1])
     {
-        getmagfromtriangulation(data_, cdata_, vars_);
+        if( data_->magparams || data_->penaltyquery[1] ) {
 
-        if(data_->verbose!=1)
-            PRINTER print2screen(data_->print2screenname,
-                                 "magnification #" + OPERA tostring(vars_->tracker) +
-                                 " = " + OPERA tostring(vars_->magger),
-                                 cdata_->print2screenmutex);
+            getmagfromtriangulation(data_, cdata_, vars_);
 
-        if(data_->magparams)
-        {
-            double writeout[2];
-            writeout[0] = vars_->lambda1;
-            writeout[1] = vars_->magger;
-            PRINTER writeoutstream <double> (writeout,2,data_->mags->stream,data_->mags->lock, data_->precision, NULL);
+            if(data_->verbose!=1)
+                PRINTER print2screen(data_->print2screenname,
+                                     "magnification #" + OPERA tostring(vars_->tracker) +
+                                     " = " + OPERA tostring(vars_->magger),
+                                     cdata_->print2screenmutex);
+
+            if(data_->magparams)
+            {
+                double writeout[2];
+                writeout[0] = vars_->lambda1;
+                writeout[1] = vars_->magger;
+                PRINTER writeoutstream <double> (writeout,2,data_->mags->stream,data_->mags->lock, data_->precision, NULL);
+            }
+
+            COMMON computemagpenalty(data_, cdata_, vars_);
         }
-
-        COMMON computemagpenalty(data_, cdata_, vars_);
     }
 }
 
@@ -708,6 +723,496 @@ void pixsrc_common_adaptive::getmagfromtriangulation(inputdata *data_, commoninp
     }
 
     vars_->magger = imgflux/srcflux;
+}
+
+void pixsrc_common_adaptive::getmagfromtriangulation_with_err(inputdata *data_, commoninputdata *cdata_, lensvar *vars_)
+{
+    if (vars_->fatalerror)
+    {
+        return;
+    }
+
+    double srcflux=0;
+
+    int numsamples = data_->magsamples;
+    PS_SIT nummagmasks = *(std::max_element(data_->magmasks, data_->magmasks + data_->ndp)) + 1;
+    if (0 == nummagmasks)
+      return;
+
+    double *allmags = new double[numsamples * (nummagmasks+1)];
+    double imgflux[nummagmasks+1];
+
+    // compute noise
+    //VECTOR *noise_dummy=0,  *noise=0;
+    double *noise = new double[vars_->lonc * vars_->lonc];
+    std::fill(noise, noise+vars_->lonc*vars_->lonc, 0);
+    VECTOR *newmps_dummy=0, *newmps=0; 
+    //MEMORY ps_malloc( &noise_dummy, 1 );
+    MEMORY ps_malloc( &newmps_dummy, 1 );
+    //noise  = new (noise_dummy)  VECTOR( cdata_, data_, vars_->lonc );
+    newmps = new (newmps_dummy) VECTOR( cdata_, data_, vars_->lonc );
+    vars_->a1->noise_invA_fullmat( noise, cdata_->numthreads, NULL );
+
+    for (int magno = 0; magno < numsamples; ++magno) {
+
+      std::copy( vars_->mps->vec, vars_->mps->vec + vars_->lonc, newmps->vec );
+      double *randvals = new double[vars_->lonc];
+      for (int jj=0; jj<vars_->lonc; ++jj) {
+	  randvals[jj] = OPERA randomgaussian (cdata_->ps_gsl_ran_r);
+      }
+      for (int jj=0; jj<vars_->lonc; ++jj) {
+	double newval = 0;
+	for (int jjj=0; jjj<=jj; ++jjj)
+	  newval += noise[jj*vars_->lonc +jjj] * randvals[jjj];
+	newmps->set(jj, vars_->mps->get(jj) + newval);
+      }
+      delete [] randvals;
+
+
+    if (data_->use_shapelets)
+    {
+        // get square roots of binomial coefficients
+        double *binom;
+        PS_SIT max_num = std::max (vars_->num_shapelets1,vars_->num_shapelets2);
+        MEMORY ps_malloc (&binom, (max_num+1)/2);
+        SHAPELETSOPERA get_binomials (data_, cdata_, vars_, binom, max_num);
+
+        // integrate shapelets to get total flux (pixel^2 units)
+        for (PS_SIT s1=0; s1<vars_->num_shapelets1; s1+=2)
+        {
+            for (PS_SIT s2=0; s2<vars_->num_shapelets2; s2+=2)
+            {
+                PS_SIT sindex = s1*vars_->num_shapelets2 + s2;
+                srcflux += std::pow (2.0,0.5*(2-s1-s2))
+                    * binom[s1/2] * binom[s2/2]
+                    * newmps->get (sindex);
+            }
+        }
+        srcflux *= CONSTANT sqrtpi * vars_->shapelet_scale;
+
+        MEMORY ps_free (binom);
+    }
+    else
+    {
+        double coords[6];
+        for(PS_SIT t=0; t<vars_->triout->numberoftriangles; t++)
+        {
+            for(PS_SIT j=0; j<3; j++)
+            {
+                coords[j*2]   = vars_->triout->pointlist[vars_->triout->trianglelist[t*3+j]*2  ];
+                coords[j*2+1] = vars_->triout->pointlist[vars_->triout->trianglelist[t*3+j]*2+1];
+            }
+
+            srcflux += GEOM areatriangle(coords) *
+                (
+                    newmps->get(vars_->triout->trianglelist[t*3  ])+
+                    newmps->get(vars_->triout->trianglelist[t*3+1])+
+                    newmps->get(vars_->triout->trianglelist[t*3+2])
+                    ) / 3.0;
+        }
+    }
+
+    // get the flux that's already been got
+    VECTOR *dummy;
+    MEMORY ps_malloc( &dummy, 1 );
+    VECTOR *lensedmpsnobo = new (dummy) VECTOR(cdata_, data_, vars_->lonr);
+    COMMON lensgalaxy( data_, cdata_, vars_, vars_->lensingoperatornobo,
+                       newmps, lensedmpsnobo);
+
+    for(PS_SIT r=0; r<vars_->lonr; r++) {
+      PS_SIT magmaskind = data_->magmasks[vars_->r4rback[r]];
+      if (magmaskind != -1) {
+        imgflux[magmaskind]  += lensedmpsnobo->get(r);
+	imgflux[nummagmasks] += lensedmpsnobo->get(r);
+      }
+    }
+
+    lensedmpsnobo->~VECTOR();
+    MEMORY ps_free( dummy );
+
+    if (data_->fullmag)
+    {
+        // get the flux that hasn't been got for whatever reason
+        // NOTE: CURRENTLY NOT TAKING INTERPOLATION ERRORS INTO ACCOUNT
+        //          FOR DATA PIXELS NOT CONTAINED WITHIN LENSING OPERATOR.
+        if (data_->use_shapelets)
+        {
+            // create work-space
+            double **workspace;
+            MEMORY ps_malloc (&workspace, 2, vars_->numberofshapelets);
+
+            // if we haven't' gotten the flux yet, get it
+            for (PS_SIT r=0; r<data_->ndp; ++r)
+	      if (-1==vars_->r4r[r]) {
+		PS_SIT magmaskind = data_->magmasks[r];
+		if (magmaskind != -1) {
+		  double thenewflux = SHAPELETSOPERA get_flux_one_pixel (data_, cdata_, vars_, r, workspace, newmps);
+		  imgflux[magmaskind]  += thenewflux;
+		  imgflux[nummagmasks] += thenewflux;
+		}
+	      }
+
+            MEMORY ps_free (workspace, 2);
+        }
+        else
+        {
+            double pos[2][3];
+            double weights3[3];
+            char *gotitalready;
+            MEMORY ps_malloc( &(gotitalready), data_->ndp );
+            std::fill(gotitalready,gotitalready+data_->ndp,0);
+
+            for(PS_SIT tri = 0; tri < vars_->triout->numberoftriangles; tri++)
+            {
+                // NOTE: rewrite: use the newer, faster ray-trace function in pixsrc::geometry
+                for(PS_SIT f=0; f<3; f++)
+                {
+                    pos[0][f] = vars_->triout->pointlist[vars_->triout->trianglelist[tri*3+f]*2];
+                    pos[1][f] = vars_->triout->pointlist[vars_->triout->trianglelist[tri*3+f]*2+1];
+                }
+                for(PS_SIT r=0; r<data_->ndp; r++)
+                {
+                    if( vars_->r4r[r]==-1 && !gotitalready[r] &&
+                        GEOM isintri(pos,vars_->newloc[r*2],vars_->newloc[r*2+1]))
+                    {
+                        OPERA planarinterpolation3pts(vars_->newloc[r*2],vars_->newloc[r*2+1],
+                                                      pos,weights3);
+                        for(PS_SIT f=0; f<3; f++) {
+			  PS_SIT magmaskind = data_->magmasks[r];
+			  if (magmaskind != -1) {
+                            imgflux[magmaskind]  += weights3[f]*newmps->get(vars_->triout->trianglelist[tri*3+f]);
+                            imgflux[nummagmasks] += weights3[f]*newmps->get(vars_->triout->trianglelist[tri*3+f]);
+			  }
+			}
+                        gotitalready[r] = 1;
+                    }
+                }
+            }
+
+            MEMORY ps_free( gotitalready );
+        }
+    }
+
+    for (int jj=0; jj<nummagmasks+1; ++jj) {
+      allmags[numsamples*jj  + magno] = imgflux[jj] / srcflux;
+    }
+
+
+    if (0) {
+
+        int ind1 = std::floor(0.025 * magno);
+        int ind2 = std::floor(0.050 * magno);
+        int ind3 = std::floor(0.160 * magno);
+        int ind4 = std::floor(0.500 * magno);
+        int ind5 = std::floor(0.840 * magno);
+        int ind6 = std::floor(0.950 * magno);
+        int ind7 = std::floor(0.975 * magno);
+
+        for (int jj=0; jj<nummagmasks+1; ++jj) {
+          
+          std::sort(allmags + jj*numsamples, allmags + jj*numsamples + magno + 1);
+
+          PRINTER print2screen(data_->print2screenname,
+    			   "mags " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind1)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind2)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind3)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind4)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind5)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind6)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind7)),
+    			   cdata_->print2screenmutex);
+        }
+    }
+
+
+    
+    }
+
+    int ind0  = std::floor(0.000 * numsamples);
+    int ind1  = std::floor(0.025 * numsamples);
+    int ind2  = std::floor(0.050 * numsamples);
+    int ind3  = std::floor(0.160 * numsamples);
+    int ind4  = std::floor(0.300 * numsamples);
+    int ind5  = std::floor(0.400 * numsamples);
+    int ind6  = std::floor(0.500 * numsamples);
+    int ind7  = std::floor(0.600 * numsamples);
+    int ind8  = std::floor(0.700 * numsamples);
+    int ind9  = std::floor(0.840 * numsamples);
+    int ind10 = std::floor(0.950 * numsamples);
+    int ind11 = std::floor(0.975 * numsamples);
+    int ind12 = std::floor(0.99999999 * numsamples);
+
+    for (int jj=0; jj<nummagmasks+1; ++jj) {
+      
+      std::sort(allmags + jj*numsamples, allmags + (jj+1)*numsamples);
+
+      double writeout[13];
+      writeout[0] = *(allmags + jj*numsamples + ind0);
+      writeout[1] = *(allmags + jj*numsamples + ind1);
+      writeout[2] = *(allmags + jj*numsamples + ind2);
+      writeout[3] = *(allmags + jj*numsamples + ind3);
+      writeout[4] = *(allmags + jj*numsamples + ind4);
+      writeout[5] = *(allmags + jj*numsamples + ind5);
+      writeout[6] = *(allmags + jj*numsamples + ind6);
+      writeout[7] = *(allmags + jj*numsamples + ind7);
+      writeout[8] = *(allmags + jj*numsamples + ind8);
+      writeout[9] = *(allmags + jj*numsamples + ind9);
+      writeout[10] = *(allmags + jj*numsamples + ind10);
+      writeout[11] = *(allmags + jj*numsamples + ind11);
+      writeout[12] = *(allmags + jj*numsamples + ind12);
+
+      PRINTER writeoutstream <double> (writeout,13,data_->mag_errs->stream,data_->mag_errs->lock, data_->precision, NULL);
+    }
+    PRINTER writeoutstream ("",data_->mag_errs->stream,data_->mag_errs->lock, data_->precision, NULL);
+
+    //noise->~VECTOR();
+    //MEMORY ps_free( noise_dummy );
+    newmps->~VECTOR();
+    MEMORY ps_free( newmps_dummy );
+
+    delete [] allmags;
+    delete [] noise;
+}
+
+void pixsrc_common_adaptive::getmagfromtriangulation_with_err_diagonals(inputdata *data_, commoninputdata *cdata_, lensvar *vars_)
+{
+    if (vars_->fatalerror)
+    {
+        return;
+    }
+
+    double srcflux=0;
+
+    int numsamples = data_->magsamples;
+    PS_SIT nummagmasks = *(std::max_element(data_->magmasks, data_->magmasks + data_->ndp)) + 1;
+    if (0 == nummagmasks)
+      return;
+
+    double *allmags = new double[numsamples * (nummagmasks+1)];
+    double imgflux[nummagmasks+1];
+
+    // compute noise
+    VECTOR *noise_dummy=0,  *noise=0;
+    VECTOR *newmps_dummy=0, *newmps=0; 
+    MEMORY ps_malloc( &noise_dummy, 1 );
+    MEMORY ps_malloc( &newmps_dummy, 1 );
+    noise  = new (noise_dummy)  VECTOR( cdata_, data_, vars_->lonc );
+    newmps = new (newmps_dummy) VECTOR( cdata_, data_, vars_->lonc );
+    vars_->a1->noise_invA( noise, cdata_->numthreads, NULL );
+
+    for (int magno = 0; magno < numsamples; ++magno) {
+
+      std::copy( vars_->mps->vec, vars_->mps->vec + vars_->lonc, newmps->vec );
+      for (int jj=0; jj<vars_->lonc; ++jj) {
+	double newval = -1;
+	//while (newval <0)
+	  newval = vars_->mps->get(jj) + noise->get(jj) * OPERA randomgaussian (cdata_->ps_gsl_ran_r);
+	  newmps->set(jj, newval);
+      }
+
+
+    if (data_->use_shapelets)
+    {
+        // get square roots of binomial coefficients
+        double *binom;
+        PS_SIT max_num = std::max (vars_->num_shapelets1,vars_->num_shapelets2);
+        MEMORY ps_malloc (&binom, (max_num+1)/2);
+        SHAPELETSOPERA get_binomials (data_, cdata_, vars_, binom, max_num);
+
+        // integrate shapelets to get total flux (pixel^2 units)
+        for (PS_SIT s1=0; s1<vars_->num_shapelets1; s1+=2)
+        {
+            for (PS_SIT s2=0; s2<vars_->num_shapelets2; s2+=2)
+            {
+                PS_SIT sindex = s1*vars_->num_shapelets2 + s2;
+                srcflux += std::pow (2.0,0.5*(2-s1-s2))
+                    * binom[s1/2] * binom[s2/2]
+                    * newmps->get (sindex);
+            }
+        }
+        srcflux *= CONSTANT sqrtpi * vars_->shapelet_scale;
+
+        MEMORY ps_free (binom);
+    }
+    else
+    {
+        double coords[6];
+        for(PS_SIT t=0; t<vars_->triout->numberoftriangles; t++)
+        {
+            for(PS_SIT j=0; j<3; j++)
+            {
+                coords[j*2]   = vars_->triout->pointlist[vars_->triout->trianglelist[t*3+j]*2  ];
+                coords[j*2+1] = vars_->triout->pointlist[vars_->triout->trianglelist[t*3+j]*2+1];
+            }
+
+            srcflux += GEOM areatriangle(coords) *
+                (
+                    newmps->get(vars_->triout->trianglelist[t*3  ])+
+                    newmps->get(vars_->triout->trianglelist[t*3+1])+
+                    newmps->get(vars_->triout->trianglelist[t*3+2])
+                    ) / 3.0;
+        }
+    }
+
+    // get the flux that's already been got
+    VECTOR *dummy;
+    MEMORY ps_malloc( &dummy, 1 );
+    VECTOR *lensedmpsnobo = new (dummy) VECTOR(cdata_, data_, vars_->lonr);
+    COMMON lensgalaxy( data_, cdata_, vars_, vars_->lensingoperatornobo,
+                       newmps, lensedmpsnobo);
+
+    for(PS_SIT r=0; r<vars_->lonr; r++) {
+      PS_SIT magmaskind = data_->magmasks[vars_->r4rback[r]];
+      if (magmaskind != -1) {
+        imgflux[magmaskind]  += lensedmpsnobo->get(r);
+	imgflux[nummagmasks] += lensedmpsnobo->get(r);
+      }
+    }
+
+    lensedmpsnobo->~VECTOR();
+    MEMORY ps_free( dummy );
+
+    if (data_->fullmag)
+    {
+        // get the flux that hasn't been got for whatever reason
+        // NOTE: CURRENTLY NOT TAKING INTERPOLATION ERRORS INTO ACCOUNT
+        //          FOR DATA PIXELS NOT CONTAINED WITHIN LENSING OPERATOR.
+        if (data_->use_shapelets)
+        {
+            // create work-space
+            double **workspace;
+            MEMORY ps_malloc (&workspace, 2, vars_->numberofshapelets);
+
+            // if we haven't' gotten the flux yet, get it
+            for (PS_SIT r=0; r<data_->ndp; ++r)
+	      if (-1==vars_->r4r[r]) {
+		PS_SIT magmaskind = data_->magmasks[r];
+		if (magmaskind != -1) {
+		  double thenewflux = SHAPELETSOPERA get_flux_one_pixel (data_, cdata_, vars_, r, workspace, newmps);
+		  imgflux[magmaskind]  += thenewflux;
+		  imgflux[nummagmasks] += thenewflux;
+		}
+	      }
+
+            MEMORY ps_free (workspace, 2);
+        }
+        else
+        {
+            double pos[2][3];
+            double weights3[3];
+            char *gotitalready;
+            MEMORY ps_malloc( &(gotitalready), data_->ndp );
+            std::fill(gotitalready,gotitalready+data_->ndp,0);
+
+            for(PS_SIT tri = 0; tri < vars_->triout->numberoftriangles; tri++)
+            {
+                // NOTE: rewrite: use the newer, faster ray-trace function in pixsrc::geometry
+                for(PS_SIT f=0; f<3; f++)
+                {
+                    pos[0][f] = vars_->triout->pointlist[vars_->triout->trianglelist[tri*3+f]*2];
+                    pos[1][f] = vars_->triout->pointlist[vars_->triout->trianglelist[tri*3+f]*2+1];
+                }
+                for(PS_SIT r=0; r<data_->ndp; r++)
+                {
+                    if( vars_->r4r[r]==-1 && !gotitalready[r] &&
+                        GEOM isintri(pos,vars_->newloc[r*2],vars_->newloc[r*2+1]))
+                    {
+                        OPERA planarinterpolation3pts(vars_->newloc[r*2],vars_->newloc[r*2+1],
+                                                      pos,weights3);
+                        for(PS_SIT f=0; f<3; f++) {
+			  PS_SIT magmaskind = data_->magmasks[r];
+			  if (magmaskind != -1) {
+                            imgflux[magmaskind]  += weights3[f]*newmps->get(vars_->triout->trianglelist[tri*3+f]);
+                            imgflux[nummagmasks] += weights3[f]*newmps->get(vars_->triout->trianglelist[tri*3+f]);
+			  }
+			}
+                        gotitalready[r] = 1;
+                    }
+                }
+            }
+
+            MEMORY ps_free( gotitalready );
+        }
+    }
+
+    for (int jj=0; jj<nummagmasks+1; ++jj) {
+      allmags[numsamples*jj  + magno] = imgflux[jj] / srcflux;
+    }
+
+    if (0) {
+
+        int ind1 = std::floor(0.025 * magno);
+        int ind2 = std::floor(0.050 * magno);
+        int ind3 = std::floor(0.160 * magno);
+        int ind4 = std::floor(0.500 * magno);
+        int ind5 = std::floor(0.840 * magno);
+        int ind6 = std::floor(0.950 * magno);
+        int ind7 = std::floor(0.975 * magno);
+
+        for (int jj=0; jj<nummagmasks+1; ++jj) {
+          
+          std::sort(allmags + jj*numsamples, allmags + jj*numsamples + magno + 1);
+
+          PRINTER print2screen(data_->print2screenname,
+    			   "mags " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind1)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind2)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind3)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind4)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind5)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind6)) + " " + 
+    			   OPERA tostring(*(allmags + jj*numsamples + ind7)),
+    			   cdata_->print2screenmutex);
+        }
+    }
+
+    
+    }
+
+    int ind0  = std::floor(0.000 * numsamples);
+    int ind1  = std::floor(0.025 * numsamples);
+    int ind2  = std::floor(0.050 * numsamples);
+    int ind3  = std::floor(0.160 * numsamples);
+    int ind4  = std::floor(0.300 * numsamples);
+    int ind5  = std::floor(0.400 * numsamples);
+    int ind6  = std::floor(0.500 * numsamples);
+    int ind7  = std::floor(0.600 * numsamples);
+    int ind8  = std::floor(0.700 * numsamples);
+    int ind9  = std::floor(0.840 * numsamples);
+    int ind10 = std::floor(0.950 * numsamples);
+    int ind11 = std::floor(0.975 * numsamples);
+    int ind12 = std::floor(0.99999999 * numsamples);
+
+    for (int jj=0; jj<nummagmasks+1; ++jj) {
+      
+      std::sort(allmags + jj*numsamples, allmags + (jj+1)*numsamples);
+
+      double writeout[13];
+      writeout[0] = *(allmags + jj*numsamples + ind0);
+      writeout[1] = *(allmags + jj*numsamples + ind1);
+      writeout[2] = *(allmags + jj*numsamples + ind2);
+      writeout[3] = *(allmags + jj*numsamples + ind3);
+      writeout[4] = *(allmags + jj*numsamples + ind4);
+      writeout[5] = *(allmags + jj*numsamples + ind5);
+      writeout[6] = *(allmags + jj*numsamples + ind6);
+      writeout[7] = *(allmags + jj*numsamples + ind7);
+      writeout[8] = *(allmags + jj*numsamples + ind8);
+      writeout[9] = *(allmags + jj*numsamples + ind9);
+      writeout[10] = *(allmags + jj*numsamples + ind10);
+      writeout[11] = *(allmags + jj*numsamples + ind11);
+      writeout[12] = *(allmags + jj*numsamples + ind12);
+
+      PRINTER writeoutstream <double> (writeout,13,data_->mag_errs->stream,data_->mag_errs->lock, data_->precision, NULL);
+    }
+    PRINTER writeoutstream ("",data_->mag_errs->stream,data_->mag_errs->lock, data_->precision, NULL);
+
+    noise->~VECTOR();
+    MEMORY ps_free( noise_dummy );
+    newmps->~VECTOR();
+    MEMORY ps_free( newmps_dummy );
+
+    delete [] allmags;
 }
 
 void pixsrc_common_adaptive::actualprintsource (inputdata *data_, commoninputdata *cdata_, lensvar *vars_, VECTOR *noise)

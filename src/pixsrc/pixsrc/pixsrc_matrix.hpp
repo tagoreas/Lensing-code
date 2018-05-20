@@ -87,6 +87,7 @@ public:
     void   init_cpu_vecs   (                                           );
     double trace_invA_B    ( pixsrc_matrix*, PS_SIT, PS_SIT*                 );
     void   noise_invA      ( pixsrc_vector*, PS_SIT, PS_SIT*                 );
+    void   noise_invA_fullmat      ( double*, PS_SIT, PS_SIT*                 );
     void   set             ( PS_SIT, PS_SIT, double                          );
     void   set             ( PS_SIT, double                               );
     double get             ( PS_SIT, PS_SIT                            );
@@ -254,6 +255,7 @@ public:
     void resize(PS_SIT**,PS_SIT**,PS_FPT**,PS_SIT,PS_SIT*);
     static void *trace_invA_B_body( void* );
     static void *noise_invA_body( void* );
+    static void *noise_invA_body_fullmat( void* );
     static void *multmatrixmatrix ( void* );
     static void *multmatrixvector ( void* );
 

@@ -49,7 +49,7 @@ public:
     static void  get_binomials      (inputdata*, commoninputdata*, lensvar*,
                                      double*, PS_SIT);
     static double get_flux_one_pixel (inputdata*, commoninputdata*, lensvar*,
-                                      PS_SIT, double**);
+                                      PS_SIT, double**, VECTOR* v=0);
     static double integrate_square (inputdata *data_, commoninputdata *cdata_, lensvar *vars_,
                                     double *hermvals_square, PS_SIT numsh_1, PS_SIT numsh_2,
                                     double sh_ctrx, double sh_ctry, double sh_scale,

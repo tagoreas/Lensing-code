@@ -660,6 +660,14 @@ vector<string> pixsrc_help::input (PS_SIT printit)
     outvec.push_back (whitesp_0 +            "This feature is useful if you want to exclude all pixels below a certain surface brightness." );
     outvec.push_back (whitesp_0 +            "(You would have to make the pixel list yourself.)" );
     outvec.push_back ("");
+    outvec.push_back (whitesp_0 + "\\item \\textbf{ " + "\\textless{}basename\\textgreater{}\\_\\textless{}imagename\\textgreater{}.magmask.reg" + "} \\hfill \\\\" );
+    outvec.push_back (whitesp_0 +            "This should have N polygons, enclosing N images for which which magnifications unertainties should be calculated." );
+    outvec.push_back (whitesp_0 +            "Masks should not overlap." );
+    outvec.push_back (whitesp_0 +            "There will be N+1 magnification uncertainties reported." );
+    outvec.push_back (whitesp_0 +            "The \"extra +1\" uncertainty calculation is for the union of all image polygons." );
+    outvec.push_back (whitesp_0 +            "The first N uncertainties in the output file are ordered according to the order they appear in the input mask file." );
+    outvec.push_back (whitesp_0 +            "The (N+1)th uncertainty is for the union of all images." );
+    outvec.push_back ("");
     outvec.push_back (whitesp_0 + "\\item \\textbf{ " + "\\textless{}basename\\textgreater{}\\_\\textless{}imagename\\textgreater{}.chi2mask.reg" + "} \\hfill \\\\" );
     outvec.push_back (whitesp_0 +            "This $\\chi^2$ mask file masks pixels where the $\\chi^2$ term should be calculated." );
     outvec.push_back (whitesp_0 +            "No other pixels will be used to compute the $\\chi^2$ term." );

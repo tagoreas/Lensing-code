@@ -40,7 +40,7 @@ void pixsrc_init::parmscreator(char ***parmslist, ps_parms_struct **pstructlist,
     //       Lastly, parameter must be read in in the readparameters function.
 
     // create structs holding parameter details
-    *size = 67;
+    *size = 70;
     ps_parms_struct *pstruct = new ps_parms_struct [*size];
 
     pstruct[0].pindex = new ps_parms_ind_class();
@@ -283,10 +283,50 @@ void pixsrc_init::parmscreator(char ***parmslist, ps_parms_struct **pstructlist,
     pstruct[ind].qdescr.push_back ("Turn magnification calculation on(1) or off(0).");
     for (PS_SIT i=0; i<2; ++i)
         pstruct[ind].entries.push_back (vector< vector <string> > (2, vector<string>()));
+    pstruct[ind].entries[0][0].push_back (pstruct[ind].sname+" 0");
+    pstruct[ind].entries[0][1].push_back ("Do not compute magnification.");
+    pstruct[ind].entries[1][0].push_back (pstruct[ind].sname+" 1");
+    pstruct[ind].entries[1][1].push_back ("Compute magnification.");
+
+    ++ind;
+    pstruct->pindex->ps_parm_ind_mag_uncertainty = ind;
+    pstruct[ind].category = ps_parm_cat_general;
+    pstruct[ind].sname    = "maguncertainty:";
+    pstruct[ind].svalue   = "0";
+    pstruct[ind].fvalue.push_back (0);
+    pstruct[ind].qdescr.push_back ("Turn magnification uncertainty calculation on(1) or off(0).");
+    for (PS_SIT i=0; i<2; ++i)
+        pstruct[ind].entries.push_back (vector< vector <string> > (2, vector<string>()));
+    pstruct[ind].entries[0][0].push_back (pstruct[ind].sname+" 0");
+    pstruct[ind].entries[0][1].push_back ("Do not compute magnification uncertainties.");
+    pstruct[ind].entries[1][0].push_back (pstruct[ind].sname+" 1");
+    pstruct[ind].entries[1][1].push_back ("Compute magnification uncertainties.");
+
+    ++ind;
+    pstruct->pindex->ps_parm_ind_fullsrccov = ind;
+    pstruct[ind].category = ps_parm_cat_general;
+    pstruct[ind].sname    = "fullsrccov:";
+    pstruct[ind].svalue   = "1";
+    pstruct[ind].fvalue.push_back (1);
+    pstruct[ind].qdescr.push_back ("Use full source covariance matrix for magnification errors yes(1) or no(0).");
+    for (PS_SIT i=0; i<2; ++i)
+        pstruct[ind].entries.push_back (vector< vector <string> > (2, vector<string>()));
     pstruct[ind].entries[0][0].push_back (pstruct[ind].sname+" 1");
-    pstruct[ind].entries[0][1].push_back ("Compute magnification.");
+    pstruct[ind].entries[0][1].push_back ("Use full source covariance matrix for calculating mag errors.");
     pstruct[ind].entries[1][0].push_back (pstruct[ind].sname+" 0");
-    pstruct[ind].entries[1][1].push_back ("Do not compute magnification.");
+    pstruct[ind].entries[1][1].push_back ("Use only diagonals of covariance matrix for calculating mag errors. Not recommended but might be necessary to avoid large matrices.");
+
+    ++ind;
+    pstruct->pindex->ps_parm_ind_magsamples = ind;
+    pstruct[ind].category = ps_parm_cat_general;
+    pstruct[ind].sname    = "magsamples:";
+    pstruct[ind].svalue   = "1000";
+    pstruct[ind].fvalue.push_back (1000);
+    pstruct[ind].qdescr.push_back ("How many realizations of the source brightness distribution to sample for calculating mag errors.");
+    for (PS_SIT i=0; i<1; ++i)
+        pstruct[ind].entries.push_back (vector< vector <string> > (2, vector<string>()));
+    pstruct[ind].entries[0][0].push_back (pstruct[ind].sname+" 1000");
+    pstruct[ind].entries[0][1].push_back ("Sample 1000 realizations of the source brightness distribution to sample for calculating mag errors.");
 
     ++ind;
     pstruct->pindex->ps_parm_ind_verbosity = ind;
@@ -1294,6 +1334,9 @@ void pixsrc_init::setdefaultparameters(char *bn, char **name, char **namewithext
         data_[g].myvariance0        =         pstruct[pind->ps_parm_ind_noise].fvalue[0]
 	    *pstruct[pind->ps_parm_ind_noise].fvalue[0];
         data_[g].magparams          = (PS_SIT)pstruct[pind->ps_parm_ind_magnification].fvalue[0];
+        data_[g].maguncertainty     = (PS_SIT)pstruct[pind->ps_parm_ind_mag_uncertainty].fvalue[0];
+        data_[g].fullsrccov         = (PS_SIT)pstruct[pind->ps_parm_ind_fullsrccov].fvalue[0];
+        data_[g].magsamples         = (PS_SIT)pstruct[pind->ps_parm_ind_magsamples].fvalue[0];
         data_[g].verbose            = (PS_SIT)pstruct[pind->ps_parm_ind_verbosity].fvalue[0];
         data_[g].printvec           = (PS_SIT)pstruct[pind->ps_parm_ind_images].fvalue[0];
         data_[g].printdetails       = (PS_SIT)pstruct[pind->ps_parm_ind_details].fvalue[0];
@@ -2427,6 +2470,42 @@ void pixsrc_init::readparameters(char *bn, char **name, char **namewithext, inpu
                 if(imageindex!=-1 && imageindex!=g)
                     continue;
                 data_[g].magparams = (PS_SIT)input[0];
+            }
+        }
+        else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_mag_uncertainty],
+                           OPERA sizestring(parmslist[pind->ps_parm_ind_mag_uncertainty]) ) )
+        {
+            dim = readarr(vec[line]+OPERA sizestring(parmslist[pind->ps_parm_ind_mag_uncertainty]),"i",pstruct[pind->ps_parm_ind_mag_uncertainty].sname.c_str(),&input,cdata_);
+
+            for(PS_SIT g=0; g<cdata_->numimages; g++)
+            {
+                if(imageindex!=-1 && imageindex!=g)
+                    continue;
+                data_[g].maguncertainty = (PS_SIT)input[0];
+            }
+        }
+        else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_fullsrccov],
+                           OPERA sizestring(parmslist[pind->ps_parm_ind_fullsrccov]) ) )
+        {
+            dim = readarr(vec[line]+OPERA sizestring(parmslist[pind->ps_parm_ind_fullsrccov]),"i",pstruct[pind->ps_parm_ind_fullsrccov].sname.c_str(),&input,cdata_);
+
+            for(PS_SIT g=0; g<cdata_->numimages; g++)
+            {
+                if(imageindex!=-1 && imageindex!=g)
+                    continue;
+                data_[g].fullsrccov = (PS_SIT)input[0];
+            }
+        }
+        else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_magsamples],
+                           OPERA sizestring(parmslist[pind->ps_parm_ind_magsamples]) ) )
+        {
+            dim = readarr(vec[line]+OPERA sizestring(parmslist[pind->ps_parm_ind_magsamples]),"i",pstruct[pind->ps_parm_ind_magsamples].sname.c_str(),&input,cdata_);
+
+            for(PS_SIT g=0; g<cdata_->numimages; g++)
+            {
+                if(imageindex!=-1 && imageindex!=g)
+                    continue;
+                data_[g].magsamples = (PS_SIT)input[0];
             }
         }
         else if( !strncmp( vec[line], parmslist[pind->ps_parm_ind_varystrength],

@@ -230,13 +230,13 @@
 	PRINTER printwarning ("pixsrc", msg + "irregular Cartesian grid shift level must be >1.01", cdata_->print2screenmutex);
     }
     // PSF
-    chk = !data_[g].nopsf && !data_[g].psffromfile && !data_[g].majoraxis>=data_[g].minoraxis;
+    chk = !data_[g].nopsf && !data_[g].psffromfile && !(data_[g].majoraxis>=data_[g].minoraxis);
     if (chk) {
 	thiskillpixsrc=1;
 	PRINTER printwarning ("pixsrc", msg + "PSF major axis must be greater than or equal to minor axis", cdata_->print2screenmutex);
     }
     // PSF sampling
-    chk = !data_[g].nopsf && !data_[g].psffromfile && !data_[g].psf_oversample>=1;
+    chk = !data_[g].nopsf && !data_[g].psffromfile && !(data_[g].psf_oversample>=1);
     if (chk) {
 	thiskillpixsrc=1;
 	PRINTER printwarning ("pixsrc", msg + "PSF oversampling must be >=1", cdata_->print2screenmutex);

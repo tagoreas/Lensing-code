@@ -1185,11 +1185,14 @@ void pixsrc_shapelets_operations::get_binomials (inputdata *data_, commoninputda
     }
 }
 
-double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, commoninputdata *cdata_, lensvar *vars_, PS_SIT rback, double **hermvecs)
+double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, commoninputdata *cdata_, lensvar *vars_, PS_SIT rback, double **hermvecs, VECTOR *thismps)
 {
     // get flux in one data pixel (r)
     // this function is used when computing magnification
     // It calculates flux in pixels that were masked out
+
+    if (!thismps)
+        thismps = vars_->mps;
 
     double sb = 0;
     double *hermvals           = hermvecs[0];
@@ -1376,7 +1379,7 @@ double pixsrc_shapelets_operations::get_flux_one_pixel (inputdata *data_, common
 
     for (PS_SIT s=0; s<vars_->numberofshapelets; ++s)
     {
-        sb += hermvals[s]/(num_mag_steps*num_mag_steps*2.0) * vars_->mps->get(s);
+        sb += hermvals[s]/(num_mag_steps*num_mag_steps*2.0) * thismps->get(s);
     }
     MEMORY ps_free (newpos, 2);
 

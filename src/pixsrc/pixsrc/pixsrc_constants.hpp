@@ -66,6 +66,8 @@ public:
     const static char   shapeintmaskfilereg[];
     const static char   imagemaskfilereg[];
     const static char   imagemaskfileascii[];
+    const static char   magmaskfilereg[];
+    const static char   magmaskfileascii[];
     const static char   badpixelmaskfilereg[];
     const static char   badpixelmaskfileascii[];
     const static char   chi2maskfilereg[];

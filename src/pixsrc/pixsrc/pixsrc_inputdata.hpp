@@ -198,6 +198,8 @@ struct inputdata
 
     outstreamstruct *mags;
     outstreamstruct *magsptr;
+    outstreamstruct *mag_errs;
+    outstreamstruct *mag_errsptr;
     outstreamstruct *traces;
     outstreamstruct *tracesptr;
     outstreamstruct *details;
@@ -220,6 +222,7 @@ struct inputdata
 
     // 0 = bad pixel, 1 = outside mask, 2 = inside mask
     char *imagemasks;
+    PS_SIT *magmasks;
     char *chi2mask;
     char **mmimages;
     double **shapeintmask;
@@ -306,6 +309,9 @@ struct inputdata
     double regftol; // regularization tolerance
     PS_SIT precision; // precision for printing doubles to files
     PS_SIT fullmag; // compute magnification using all pixels in image plane
+    PS_SIT maguncertainty; // get mag errors
+    PS_SIT fullsrccov; // use fufll source covariance matrix for mag errors
+    PS_SIT magsamples; // number of samples of source brightness to use for mag erros
     double *srcpixelscale; // source pixel scale (for printing FITS files)
     PS_SIT srcpixelscale0; // default value
 
@@ -388,6 +394,9 @@ public:
     PS_SIT ps_parm_ind_penalty6;
     PS_SIT ps_parm_ind_statistic;
     PS_SIT ps_parm_ind_magnification;
+    PS_SIT ps_parm_ind_mag_uncertainty;
+    PS_SIT ps_parm_ind_fullsrccov;
+    PS_SIT ps_parm_ind_magsamples;
     PS_SIT ps_parm_ind_verbosity;
     PS_SIT ps_parm_ind_images;
     PS_SIT ps_parm_ind_varystrength;

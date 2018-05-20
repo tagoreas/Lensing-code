@@ -71,7 +71,7 @@ void pixsrc_init::finalizeNcounterindications(char *bn, char **name, char **name
         if( data_[g].magparams && data_[g].traceparams[2] &&
             data_[g].magparams != ( data_[g].traceparams[2]+1 ) )
         {
-	  data_[g].magparams = (PS_SIT)data_[g].traceparams[2]+1;
+	       data_[g].magparams = (PS_SIT)data_[g].traceparams[2]+1;
             /*
               PRINTER printerror("","cannot trace magnification and regularization "
               "strength simultaneously if sampling is different!",
@@ -95,6 +95,26 @@ void pixsrc_init::finalizeNcounterindications(char *bn, char **name, char **name
                                    data_[g].mags->stream, 0               );
             PRINTER writeoutstream( "# regularization_const. magnification",
                                     data_[g].mags->stream, data_[g].mags->lock, data_[g].precision, NULL);
+        }
+        if(data_[g].maguncertainty)
+        {
+            MEMORY ps_malloc( &(data_[g].mag_errsptr        ), 1 );
+            data_[g].mag_errs = new (data_[g].mag_errsptr) outstreamstruct;
+
+            MEMORY ps_malloc( &(data_[g].mag_errs->streamptr), 1 );
+            MEMORY ps_malloc( &(data_[g].mag_errs->lockptr  ), 1 );
+            data_[g].mag_errs->stream = new (data_[g].mag_errs->streamptr) std::ofstream;
+            data_[g].mag_errs->lock   = new (data_[g].mag_errs->lockptr  ) pthread_mutex_t;
+
+            pthread_mutex_init(data_[g].mag_errs->lock,NULL);
+
+            PRINTER openoutstream( cdata_->basename,
+                                   data_[g].name, 1,"magnification_uncertainties.dat",
+                                   data_[g].mag_errs->stream, 0               );
+            PRINTER writeoutstream( "# 0% 2.5% 5% 16% 30% 40% 50% 60% 70% 84% 95% 97.5% 100% quantiles",
+                                    data_[g].mag_errs->stream, data_[g].mag_errs->lock, data_[g].precision, NULL);
+            PRINTER writeoutstream( "",
+                                    data_[g].mag_errs->stream, data_[g].mag_errs->lock, data_[g].precision, NULL);
         }
         if(data_[g].traceparams[2])
         {
@@ -873,6 +893,11 @@ void pixsrc_init::readmasks(char *bn, char **name, char **namewithext, inputdata
             MEMORY ps_free (data_[g].imagemasks);
         MEMORY ps_malloc (&data_[g].imagemasks, data_[g].extlengths[16]);
         std::fill (data_[g].imagemasks,data_[g].imagemasks+data_[g].extlengths[16],1);
+
+        if (data_[g].magmasks)
+            MEMORY ps_free (data_[g].magmasks);
+        MEMORY ps_malloc (&data_[g].magmasks, data_[g].extlengths[16]);
+        std::fill (data_[g].magmasks,data_[g].magmasks+data_[g].extlengths[16],-1);
     }
 
     // read chi2 mask
@@ -1059,6 +1084,45 @@ void pixsrc_init::readmasks(char *bn, char **name, char **namewithext, inputdata
                 if(data_[g].imagemasks[r]==1)
                     data_[g].imagemasks[r] = 2;
         }
+    }
+
+    // read magnification bootstrap mask
+    for(PS_SIT g=0; g<cdata_->numimages; g++)
+    {
+        PS_SIT dim1,dim2;
+        double **polys = NULL;
+
+        char *file;
+        const char *listcc[5];
+        listcc[0] = CONSTANT dir_in;
+        listcc[1] = bn;
+        listcc[2] = CONSTANT bnseparator;
+        listcc[3] = name[g];
+        listcc[4] = CONSTANT magmaskfilereg;
+        OPERA concatenate( listcc, 5, &file );
+
+        readmaskpolygon( &dim1,&dim2,&polys, &file, &data_[g], cdata_);
+        MEMORY ps_free( file );
+
+        // find masked pixels
+        for(PS_SIT r=0; r<data_[g].extlengths[16]; r++)
+        {
+            if(data_[g].magmasks[r]== -1)
+            {
+                PS_SIT x=r/data_[g].imgy;
+                PS_SIT y=r%data_[g].imgy;
+                for(PS_SIT s=0; s< dim1; s++)
+                {
+                    if(GEOM isinpoly(x,y,polys[s],dim2/2))
+                    {
+                        data_[g].magmasks[r]=s;
+                        break;
+                    }
+                }
+            }
+        }
+
+        MEMORY ps_free( polys, dim1 );
     }
 
     // read mismatched image masks
