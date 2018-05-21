@@ -732,7 +732,6 @@ void pixsrc_common_adaptive::getmagfromtriangulation_with_err(inputdata *data_, 
         return;
     }
 
-    double srcflux=0;
 
     int numsamples = data_->magsamples;
     PS_SIT nummagmasks = *(std::max_element(data_->magmasks, data_->magmasks + data_->ndp)) + 1;
@@ -740,7 +739,6 @@ void pixsrc_common_adaptive::getmagfromtriangulation_with_err(inputdata *data_, 
       return;
 
     double *allmags = new double[numsamples * (nummagmasks+1)];
-    double imgflux[nummagmasks+1];
 
     // compute noise
     //VECTOR *noise_dummy=0,  *noise=0;
@@ -755,7 +753,11 @@ void pixsrc_common_adaptive::getmagfromtriangulation_with_err(inputdata *data_, 
 
     for (int magno = 0; magno < numsamples; ++magno) {
 
-      std::copy( vars_->mps->vec, vars_->mps->vec + vars_->lonc, newmps->vec );
+        double srcflux=0;
+        double imgflux[nummagmasks+1];
+        std::fill(imgflux, imgflux + nummagmasks+1, 0);
+
+        std::copy( vars_->mps->vec, vars_->mps->vec + vars_->lonc, newmps->vec );
       double *randvals = new double[vars_->lonc];
       for (int jj=0; jj<vars_->lonc; ++jj) {
 	  randvals[jj] = OPERA randomgaussian (cdata_->ps_gsl_ran_r);
@@ -982,15 +984,12 @@ void pixsrc_common_adaptive::getmagfromtriangulation_with_err_diagonals(inputdat
         return;
     }
 
-    double srcflux=0;
-
     int numsamples = data_->magsamples;
     PS_SIT nummagmasks = *(std::max_element(data_->magmasks, data_->magmasks + data_->ndp)) + 1;
     if (0 == nummagmasks)
       return;
 
     double *allmags = new double[numsamples * (nummagmasks+1)];
-    double imgflux[nummagmasks+1];
 
     // compute noise
     VECTOR *noise_dummy=0,  *noise=0;
@@ -1002,6 +1001,10 @@ void pixsrc_common_adaptive::getmagfromtriangulation_with_err_diagonals(inputdat
     vars_->a1->noise_invA( noise, cdata_->numthreads, NULL );
 
     for (int magno = 0; magno < numsamples; ++magno) {
+
+        double srcflux=0;
+        double imgflux[nummagmasks+1];
+        std::fill(imgflux, imgflux + nummagmasks+1, 0);
 
       std::copy( vars_->mps->vec, vars_->mps->vec + vars_->lonc, newmps->vec );
       for (int jj=0; jj<vars_->lonc; ++jj) {
