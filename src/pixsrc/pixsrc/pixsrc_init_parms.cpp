@@ -1287,6 +1287,7 @@ void pixsrc_init::setdefaultparameters(char *bn, char **name, char **namewithext
         std::fill (data_[g].penaltyquery, data_[g].penaltyquery + data_[g].extlengths[5], 0);
 
         // set masks to null
+	data_[g].magmasks = 0;
         data_[g].imagemasks = 0;
         data_[g].chi2mask = 0;
         data_[g].num_mmimages = 0;
