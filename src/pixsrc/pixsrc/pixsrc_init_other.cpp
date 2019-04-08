@@ -1327,17 +1327,19 @@ void pixsrc_init::setuppsfs(char *bn, char **name, char **namewithext, inputdata
                 for(PS_SIT z2=0; z2<naxes[1]; z2++)
                     vec[counter++]=data_[g].psf[z2][z1];
             std::sort(vec, vec+numtotal);
-            double sum=0;
-            PS_SIT zblah;
+            double sum=0,total_sum=0;
+	    PS_SIT zblah;
             PS_SIT fwhm_flag = 0;
             for(zblah=numtotal-1; zblah>=0; zblah--)
+	        total_sum += vec[zblah];
+            for(zblah=numtotal-1; zblah>=0; zblah--)
             {
-                if(sum>=psf_flux_half_cutoff && !fwhm_flag )
+                if(sum>=psf_flux_half_cutoff*total_sum && !fwhm_flag )
                 {
                     data_[g].fwhm_weight = vec[zblah+1];
                     fwhm_flag = 1;
                 }
-                if(sum>=psf_flux_cutoff)
+                if(sum>=psf_flux_cutoff*total_sum)
                     break;
                 sum+=vec[zblah];
             }
